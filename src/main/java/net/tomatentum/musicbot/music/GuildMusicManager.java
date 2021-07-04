@@ -10,13 +10,18 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.tomatentum.musicbot.MusicBot;
+import org.jetbrains.annotations.NotNull;
 
+import javax.xml.bind.Marshaller;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-public class GuildMusicManager {
+public class GuildMusicManager extends ListenerAdapter {
 	private AudioPlayer player;
 	private Guild guild;
 	private TrackScheduler trackScheduler;
@@ -26,6 +31,8 @@ public class GuildMusicManager {
 
 
 	public GuildMusicManager(AudioPlayerManager playerManager, Guild guild) {
+		MusicBot.getInstance().getBot().addEventListener(this);
+		this.audioPlayerManager = playerManager;
 		this.guild = guild;
 		this.player = playerManager.createPlayer();
 		this.trackScheduler = new TrackScheduler(player, this);
@@ -33,7 +40,7 @@ public class GuildMusicManager {
 		this.panelManager = new PanelManager(this);
 		player.addListener(trackScheduler);
 
-		this.startCleanupLoop(20000);
+		this.startCleanupLoop(30000);
 		this.startPresenceLoop(6000);
 	}
 	public void connect(VoiceChannel channel) {
@@ -45,8 +52,21 @@ public class GuildMusicManager {
 	public void quit() {
 		guild.getAudioManager().closeAudioConnection();
 		guild.getAudioManager().setSendingHandler(null);
+		panelManager.setIdle();
 		trackScheduler.clear();
 		trackScheduler.setRepeating(false);
+		player.stopTrack();
+		player.setPaused(false);
+	}
+
+	public void setPaused(boolean paused) {
+		if (paused) {
+			player.setPaused(true);
+			panelManager.setPaused();
+		}else {
+			player.setPaused(false);
+			panelManager.setPlaying(player.getPlayingTrack());
+		}
 	}
 
 	public void loadAndQueue(String URL) {
@@ -55,7 +75,6 @@ public class GuildMusicManager {
 			trackURL = URL.substring(1, URL.length()-1);
 		}else
 			trackURL = URL;
-
 
 		audioPlayerManager.loadItem(trackURL, new AudioLoadResultHandler() {
 			@Override
@@ -116,14 +135,24 @@ public class GuildMusicManager {
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (player.getPlayingTrack() != null) {
+				if (player.isPaused()) {
+					MusicBot.getInstance().getBot().getPresence().setActivity(Activity.playing("(PAUSED) " + player.getPlayingTrack().getInfo().title + " [" + MusicBot.getTimestamp(player.getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(player.getPlayingTrack().getDuration()) + "]"));
+
+				}else if (player.getPlayingTrack() != null) {
 					MusicBot.getInstance().getBot().getPresence().setActivity(Activity.playing(player.getPlayingTrack().getInfo().title + " [" + MusicBot.getTimestamp(player.getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(player.getPlayingTrack().getDuration()) + "]"));
+
 				}else
 					MusicBot.getInstance().getBot().getPresence().setActivity(null);
 			}
 		}, delay, delay);
 	}
 
+	@Override
+	public void onGuildVoiceLeave(@NotNull GuildVoiceLeaveEvent event) {
+		if (event.getMember().getUser().getIdLong() == MusicBot.getInstance().getBot().getSelfUser().getIdLong()) {
+			quit();
+		}
+	}
 
 	public AudioPlayer getPlayer() {
 		return player;
@@ -135,5 +164,9 @@ public class GuildMusicManager {
 
 	public TrackScheduler getTrackScheduler() {
 		return trackScheduler;
+	}
+
+	public PanelManager getPanelManager() {
+		return panelManager;
 	}
 }

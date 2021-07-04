@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class CommandManager extends ListenerAdapter {
 
@@ -19,19 +20,20 @@ public class CommandManager extends ListenerAdapter {
 		commands = new HashMap<>();
 	}
 
+	public void registerCommand(String command, GuildCommand provider) {
+		commands.put(command.toLowerCase(), provider);
+	}
 
 	@Override
 	public void onMessageReceived(@NotNull MessageReceivedEvent event) {
 		if (event.getMessage().getContentDisplay().startsWith(",")) {
 			String[] args = event.getMessage().getContentDisplay().split(" ");
-				if (commands.containsKey(args[0].substring(1).toLowerCase())) {
-					commands.get(args[1].substring(1).toLowerCase()).execute(event.getMember(), event.getTextChannel(), event.getMessage(), args);
-				}
+				if (commands.containsKey(args[0].replace(",", "").toLowerCase())) {
+					commands.get(args[0].replace(",", "").toLowerCase()).execute(event.getMember(), event.getTextChannel(), event.getMessage(), args);
+				}else
+					event.getTextChannel().sendMessage("Unknown Command: ``" + args[0] + "``").complete().delete().queueAfter(5, TimeUnit.SECONDS);
 
 		}
 	}
 
-	public void registerCommand(String command, GuildCommand provider) {
-		commands.put(command, provider);
-	}
 }

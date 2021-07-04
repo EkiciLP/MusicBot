@@ -30,13 +30,15 @@ public class TrackScheduler extends AudioEventAdapter {
 	public void queue(AudioTrack audioTrack) {
 		if (player.getPlayingTrack() == null) {
 			player.playTrack(audioTrack);
-		}else
+			musicManager.getPanelManager().setPlaying(audioTrack);
+		}else {
 			queue.offer(audioTrack);
+			musicManager.getPanelManager().setPlaying(player.getPlayingTrack());
+		}
 	}
 
 	public void clear() {
 		queue.clear();
-		player.stopTrack();
 	}
 
 	public AudioTrack nextTrack() throws IllegalArgumentException {
@@ -45,6 +47,7 @@ public class TrackScheduler extends AudioEventAdapter {
 		}else {
 			AudioTrack audioTrack = queue.poll();
 			player.playTrack(audioTrack);
+			musicManager.getPanelManager().setPlaying(audioTrack);
 			return audioTrack;
 		}
 	}
@@ -53,10 +56,14 @@ public class TrackScheduler extends AudioEventAdapter {
 	public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
 		if (endReason.mayStartNext) {
 			if (repeating) {
+				AudioTrack audioTrack = track.makeClone();
 				player.playTrack(track.makeClone());
+				musicManager.getPanelManager().setPlaying(audioTrack);
 			}else {
 				if (!queue.isEmpty()) {
-					player.playTrack(queue.poll());
+					AudioTrack audioTrack = queue.poll();
+					player.playTrack(audioTrack);
+					musicManager.getPanelManager().setPlaying(audioTrack);
 				}else {
 					musicManager.quit();
 				}
@@ -69,19 +76,27 @@ public class TrackScheduler extends AudioEventAdapter {
 		List<AudioTrack> audioTracks = new ArrayList<>(queue);
 		Collections.shuffle(audioTracks);
 		this.queue = new LinkedBlockingQueue<>(audioTracks);
+		musicManager.getPanelManager().setPlaying(player.getPlayingTrack());
 	}
 
 	public String getQueueString() {
 		StringBuilder builder = new StringBuilder();
 		int count = 1;
 		for (AudioTrack track : queue) {
-			builder.append(count).append(": ").append(track.getInfo().title).append(" [").append(MusicBot.getTimestamp(track.getDuration())).append("]");
+			builder.append(count).append(": ").append(track.getInfo().title).append(" [").append(MusicBot.getTimestamp(track.getDuration())).append("]\n");
+			count++;
 		}
 		return builder.toString();
 	}
 
 	public void setRepeating(boolean repeating) {
 		this.repeating = repeating;
+		if (player.getPlayingTrack() != null) {
+			musicManager.getPanelManager().setPlaying(player.getPlayingTrack());
+		}else if (player.isPaused()) {
+			musicManager.getPanelManager().setPaused();
+		}else
+			musicManager.getPanelManager().setIdle();
 	}
 
 	public boolean isRepeating() {
