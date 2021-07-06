@@ -6,10 +6,8 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -17,6 +15,8 @@ import net.tomatentum.musicbot.MusicBot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.Marshaller;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +30,7 @@ public class GuildMusicManager extends ListenerAdapter {
 	private PanelManager panelManager;
 
 
+
 	public GuildMusicManager(AudioPlayerManager playerManager, Guild guild) {
 		MusicBot.getInstance().getBot().addEventListener(this);
 		this.audioPlayerManager = playerManager;
@@ -41,7 +42,6 @@ public class GuildMusicManager extends ListenerAdapter {
 		player.addListener(trackScheduler);
 
 		this.startCleanupLoop(30000);
-		this.startPresenceLoop(6000);
 	}
 	public void connect(VoiceChannel channel) {
 		guild.getAudioManager().openAudioConnection(channel);
@@ -57,6 +57,7 @@ public class GuildMusicManager extends ListenerAdapter {
 		trackScheduler.setRepeating(false);
 		player.stopTrack();
 		player.setPaused(false);
+		player.setVolume(100);
 	}
 
 	public void setPaused(boolean paused) {
@@ -115,6 +116,37 @@ public class GuildMusicManager extends ListenerAdapter {
 			@Override
 			public void loadFailed(FriendlyException e) {
 				panelManager.getChannel().sendMessage("⛔ ``" + e.getMessage() + "``").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+			}
+		});
+	}
+
+	public void search(@NotNull String query, TextChannel channel) {
+		String trackURL;
+		if (query.startsWith("<") && query.endsWith(">")) {
+			trackURL = query.substring(1, query.length()-1);
+		}else
+			trackURL = query;
+
+		audioPlayerManager.loadItem("ytsearch:" + trackURL, new AudioLoadResultHandler() {
+			@Override
+			public void trackLoaded(AudioTrack audioTrack) {
+				new SelectionPanel(channel,	new BasicAudioPlaylist("Selected Track", Collections.singletonList(audioTrack), audioTrack, true));
+				System.out.println("loaded track");
+			}
+
+			@Override
+			public void playlistLoaded(AudioPlaylist audioPlaylist) {
+				new SelectionPanel(channel, audioPlaylist);
+
+
+			}
+
+			@Override
+			public void noMatches() {
+			}
+
+			@Override
+			public void loadFailed(FriendlyException e) {
 			}
 		});
 	}

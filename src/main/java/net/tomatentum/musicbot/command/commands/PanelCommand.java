@@ -11,6 +11,7 @@ import net.tomatentum.musicbot.music.GuildMusicManager;
 public class PanelCommand implements GuildCommand {
 	@Override
 	public void execute(Member member, TextChannel channel, Message message, String[] args) {
+		message.delete().queue();
 		if (member.hasPermission(Permission.MANAGE_CHANNEL)) {
 			GuildMusicManager musicManager = MusicBot.getInstance().getAudioManager().getMusicManager(channel.getGuild());
 			try {

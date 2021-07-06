@@ -13,12 +13,13 @@ import java.util.concurrent.TimeUnit;
 public class VolumeCommand implements GuildCommand {
 	@Override
 	public void execute(Member member, TextChannel channel, Message message, String[] args) {
+		message.delete().queueAfter(2, TimeUnit.SECONDS);
 		GuildMusicManager musicManager = MusicBot.getInstance().getAudioManager().getMusicManager(channel.getGuild());
 		if (channel.getGuild().getAudioManager().isConnected() && channel.getGuild().getAudioManager().getConnectedChannel().getMembers().contains(member)) {
 			int oldvolume = musicManager.getPlayer().getVolume();
 			int newvolume;
 			try {
-				newvolume = Integer.max(100, Integer.min(1, Integer.parseInt(args[1])));
+				newvolume = Integer.min(100, Integer.max(1, Integer.parseInt(args[1])));
 
 			}catch (NumberFormatException e) {
 				channel.sendMessage("Please use valid numbers!").complete().delete().queueAfter(5, TimeUnit.SECONDS);

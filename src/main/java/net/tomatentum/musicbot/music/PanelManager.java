@@ -23,12 +23,13 @@ public class PanelManager {
 
 	public PanelManager(GuildMusicManager musicManager) {
 		this.guildMusicManager = musicManager;
-
-		this.channel = MusicBot.getInstance().getBot().getTextChannelById(MusicBot.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".channelid"));
-		this.message = channel.retrieveMessageById(MusicBot.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".messageid")).complete();
-		this.builder = new EmbedBuilder(message.getEmbeds().get(0));
-
-		startUpdateLoop(2000);
+		try {
+			this.channel = MusicBot.getInstance().getBot().getTextChannelById(MusicBot.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".channelid"));
+			this.message = channel.retrieveMessageById(MusicBot.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".messageid")).complete();
+			this.builder = new EmbedBuilder(message.getEmbeds().get(0));
+		}catch (NullPointerException ignored) {
+		}
+		startUpdateLoop(3000);
 	}
 
 
@@ -48,6 +49,8 @@ public class PanelManager {
 			this.message.addReaction("🚫").queue();
 			this.message.addReaction("🔄").queue();
 			this.message.addReaction("🔀").queue();
+			this.message.addReaction("🔊").queue();
+			this.message.addReaction("🔉").queue();
 		}catch (Exception e) {
 			System.out.println("error");
 		}
@@ -69,6 +72,7 @@ public class PanelManager {
 		builder.setImage("https://i.imgur.com/9Q80W4c.png");
 		builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "%");
 		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).embed(builder.build()).complete();
+
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -82,7 +86,7 @@ public class PanelManager {
 		builder.setColor(Color.CYAN);
 		builder.setAuthor("Playing");
 		builder.setTitle(track.getInfo().title);
-		builder.setImage("https://img.youtube.com/vi/" + track.getIdentifier() + "/mqdefault.jpg");
+		builder.setImage("https://img.youtube.com/vi/" + track.getIdentifier() + "/maxresdefault.jpg");
 		if (!guildMusicManager.getTrackScheduler().isRepeating()) {
 			builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "% | " + MusicBot.getTimestamp(track.getPosition()) + "/" + MusicBot.getTimestamp(track.getDuration()));
 		}else

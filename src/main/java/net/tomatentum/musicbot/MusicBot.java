@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.tomatentum.musicbot.command.commands.PanelCommand;
+import net.tomatentum.musicbot.command.commands.SearchCommand;
 import net.tomatentum.musicbot.command.commands.VolumeCommand;
 import net.tomatentum.musicbot.command.utils.CommandManager;
 import net.tomatentum.musicbot.music.AudioManager;
@@ -37,6 +38,7 @@ public class MusicBot {
 		cmdmanager = new CommandManager();
 		cmdmanager.registerCommand("panel", new PanelCommand());
 		cmdmanager.registerCommand("volume", new VolumeCommand());
+		cmdmanager.registerCommand("search", new SearchCommand());
 
 
 

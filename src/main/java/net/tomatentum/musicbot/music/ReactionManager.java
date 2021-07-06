@@ -66,6 +66,23 @@ public class ReactionManager extends ListenerAdapter {
 						event.getChannel().sendMessage("🔀 Queue Shuffled!").complete().delete().queueAfter(5, TimeUnit.SECONDS);
 					}
 						break;
+				case "🔊":
+					if (event.getGuild().getAudioManager().isConnected() && event.getGuild().getAudioManager().getConnectedChannel().getMembers().contains(event.getMember())) {
+						int volume = musicManager.getPlayer().getVolume()+10;
+
+						musicManager.getPlayer().setVolume( Integer.min(100, Integer.max(1, volume)));
+						musicManager.getPanelManager().setPlaying(musicManager.getPlayer().getPlayingTrack());
+					}
+						break;
+				case "🔉":
+					if (event.getGuild().getAudioManager().isConnected() && event.getGuild().getAudioManager().getConnectedChannel().getMembers().contains(event.getMember())) {
+						int volume = musicManager.getPlayer().getVolume()-10;
+
+						musicManager.getPlayer().setVolume( Integer.min(100, Integer.max(1, volume)));
+						musicManager.getPanelManager().setPlaying(musicManager.getPlayer().getPlayingTrack());
+
+					}
+					break;
 
 			}
 		}
