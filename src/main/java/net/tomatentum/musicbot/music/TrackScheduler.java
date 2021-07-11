@@ -30,15 +30,15 @@ public class TrackScheduler extends AudioEventAdapter {
 	public void queue(AudioTrack audioTrack) {
 		if (player.getPlayingTrack() == null) {
 			player.playTrack(audioTrack);
-			musicManager.getPanelManager().setPlaying(audioTrack);
 		}else {
 			queue.offer(audioTrack);
-			musicManager.getPanelManager().setPlaying(player.getPlayingTrack());
+
 		}
 	}
 
 	public void clear() {
 		queue.clear();
+		musicManager.getPanelManager().update();
 	}
 
 	public AudioTrack nextTrack() throws IllegalArgumentException {
@@ -47,7 +47,8 @@ public class TrackScheduler extends AudioEventAdapter {
 		}else {
 			AudioTrack audioTrack = queue.poll();
 			player.playTrack(audioTrack);
-			musicManager.getPanelManager().setPlaying(audioTrack);
+			musicManager.getPanelManager().update();
+
 			return audioTrack;
 		}
 	}
@@ -58,14 +59,13 @@ public class TrackScheduler extends AudioEventAdapter {
 			if (repeating) {
 				AudioTrack audioTrack = track.makeClone();
 				player.playTrack(track.makeClone());
-				musicManager.getPanelManager().setPlaying(audioTrack);
+				musicManager.getPanelManager().update();
+
 			}else {
 				if (!queue.isEmpty()) {
 					AudioTrack audioTrack = queue.poll();
 					player.playTrack(audioTrack);
-					musicManager.getPanelManager().setPlaying(audioTrack);
-				}else {
-					musicManager.quit();
+					musicManager.getPanelManager().update();
 				}
 			}
 
@@ -76,7 +76,8 @@ public class TrackScheduler extends AudioEventAdapter {
 		List<AudioTrack> audioTracks = new ArrayList<>(queue);
 		Collections.shuffle(audioTracks);
 		this.queue = new LinkedBlockingQueue<>(audioTracks);
-		musicManager.getPanelManager().setPlaying(player.getPlayingTrack());
+		musicManager.getPanelManager().update();
+
 	}
 
 	public String getQueueString() {
@@ -91,12 +92,7 @@ public class TrackScheduler extends AudioEventAdapter {
 
 	public void setRepeating(boolean repeating) {
 		this.repeating = repeating;
-		if (player.getPlayingTrack() != null) {
-			musicManager.getPanelManager().setPlaying(player.getPlayingTrack());
-		}else if (player.isPaused()) {
-			musicManager.getPanelManager().setPaused();
-		}else
-			musicManager.getPanelManager().setIdle();
+		musicManager.getPanelManager().update();
 	}
 
 	public boolean isRepeating() {

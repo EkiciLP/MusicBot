@@ -1,4 +1,4 @@
-package net.tomatentum.musicbot.music;
+package net.tomatentum.musicbot.music.messagemanagers;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.tomatentum.musicbot.MusicBot;
+import net.tomatentum.musicbot.music.GuildMusicManager;
 
 import javax.annotation.Nullable;
 import java.awt.*;
@@ -29,7 +30,7 @@ public class PanelManager {
 			this.builder = new EmbedBuilder(message.getEmbeds().get(0));
 		}catch (NullPointerException ignored) {
 		}
-		startUpdateLoop(3000);
+		startUpdateLoop(5000);
 	}
 
 
@@ -51,6 +52,8 @@ public class PanelManager {
 			this.message.addReaction("🔀").queue();
 			this.message.addReaction("🔊").queue();
 			this.message.addReaction("🔉").queue();
+			this.message.addReaction("⭐").queue();
+			this.message.addReaction("❌").queue();
 		}catch (Exception e) {
 			System.out.println("error");
 		}
@@ -70,15 +73,6 @@ public class PanelManager {
 		builder.setAuthor("Stopped");
 		builder.setTitle(" - Nothing Playing -");
 		builder.setImage("https://i.imgur.com/9Q80W4c.png");
-		builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "%");
-		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).embed(builder.build()).complete();
-
-		new Timer().schedule(new TimerTask() {
-			@Override
-			public void run() {
-				recentlchanged = false;
-			}
-		}, 1000);
 	}
 
 	public void setPlaying(AudioTrack track) {
@@ -86,37 +80,43 @@ public class PanelManager {
 		builder.setColor(Color.CYAN);
 		builder.setAuthor("Playing");
 		builder.setTitle(track.getInfo().title);
-		builder.setImage("https://img.youtube.com/vi/" + track.getIdentifier() + "/maxresdefault.jpg");
-		if (!guildMusicManager.getTrackScheduler().isRepeating()) {
-			builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "% | " + MusicBot.getTimestamp(track.getPosition()) + "/" + MusicBot.getTimestamp(track.getDuration()));
-		}else
-			builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "% | " + MusicBot.getTimestamp(track.getPosition()) + "/" + MusicBot.getTimestamp(track.getDuration()) + " | Looping Enabled" );
+		builder.setImage("https://img.youtube.com/vi/" + track.getIdentifier() + "/mqdefault.jpg");
 
-		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).embed(builder.build()).complete();
-		new Timer().schedule(new TimerTask() {
-			@Override
-			public void run() {
-				recentlchanged = false;
-			}
-		}, 1000);
 	}
 	public void setPaused() {
 		recentlchanged = true;
 		builder.setColor(Color.ORANGE);
 		builder.setAuthor("Paused");
+	}
+
+	public void update() {
+
+		if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
+			guildMusicManager.getPanelManager().setPlaying(guildMusicManager.getPlayer().getPlayingTrack());
+		}else
+			guildMusicManager.getPanelManager().setIdle();
+		if (guildMusicManager.getPlayer().isPaused()) {
+			guildMusicManager.getPanelManager().setPaused();
+		}
+
+
 		if (!guildMusicManager.getTrackScheduler().isRepeating()) {
-			builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "% | " + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()));
+			if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
+				builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "% | " + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()));
+			}else
+				builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "%");
+
 		}else
 			builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "% | " + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()) + " | Looping Enabled" );
 
-
 		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).embed(builder.build()).complete();
+
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
 				recentlchanged = false;
 			}
-		}, 1000);
+		}, 2000);
 	}
 
 
@@ -125,13 +125,18 @@ public class PanelManager {
 			@Override
 			public void run() {
 				if (!recentlchanged) {
-					if (message != null) {
-						if (guildMusicManager.getPlayer().isPaused()) {
-							setPaused();
-						} else if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
-							setPlaying(guildMusicManager.getPlayer().getPlayingTrack());
-						} else {
-							setIdle();
+					if (!guildMusicManager.getPlayer().isPaused()) {
+						if (message != null) {
+							if (guildMusicManager.getPlayer().isPaused()) {
+								setPaused();
+								update();
+							} else if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
+								setPlaying(guildMusicManager.getPlayer().getPlayingTrack());
+								update();
+							} else {
+								setIdle();
+								update();
+							}
 						}
 					}
 				}

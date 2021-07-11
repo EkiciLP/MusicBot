@@ -1,59 +1,70 @@
-package net.tomatentum.musicbot.music;
+package net.tomatentum.musicbot.utils;
 
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sun.org.apache.bcel.internal.generic.INSTANCEOF;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.tomatentum.musicbot.MusicBot;
+import net.tomatentum.musicbot.music.GuildMusicManager;
 
-import java.awt.font.LineBreakMeasurer;
 import java.time.OffsetDateTime;
-import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+import java.util.spi.CurrencyNameProvider;
 
 public class SelectionPanel extends ListenerAdapter {
 	private final GuildMusicManager musicManager;
-	private final AudioPlaylist audioPlaylist;
+	private final Selectable handle;
 	private TextChannel channel;
 	private EmbedBuilder builder;
 	private Message message;
+	private int currentPage;
 
 
-	public SelectionPanel(TextChannel channel, AudioPlaylist audioPlaylist) {
+	public SelectionPanel(TextChannel channel, String Title, Selectable handle) {
+		currentPage = 1;
+		handle.getPage(currentPage);
 
 		MusicBot.getInstance().getBot().addEventListener(this);
 		this.channel = channel;
 		this.musicManager = MusicBot.getInstance().getAudioManager().getMusicManager(channel.getGuild());
-		this.audioPlaylist = audioPlaylist;
+		this.handle = handle;
 		this.builder = new EmbedBuilder();
 
-		if (audioPlaylist.getTracks().size() == 0) {
-			channel.sendMessage("🛑 Nothing found!").queue();
-			return;
-		}
-
-		StringBuilder description = new StringBuilder();
-		int count = 1;
-		for (int i = 0; i < 9 && i < audioPlaylist.getTracks().size(); i++) {
-			AudioTrack track = audioPlaylist.getTracks().get(i);
-			description.append(count).append(": ").append(track.getInfo().title).append(" [").append(MusicBot.getTimestamp(track.getDuration())).append("]\n");
-			count++;
-		}
-		this.builder.setTitle(audioPlaylist.getName());
-
+		this.builder.setTitle(Title);
 		this.builder.setTimestamp(OffsetDateTime.now());
-		this.builder.setFooter("- Queue a track by reacting with the correct number");
-		this.builder.setDescription(description.toString());
 
 		message = channel.sendMessage(builder.build()).complete();
+		showPage(currentPage);
+
 		message.delete().queueAfter(1, TimeUnit.MINUTES);
-		switch (audioPlaylist.getTracks().size()) {
+
+
+
+	}
+
+	public void showPage(int page) {
+		currentPage = page;
+		message.clearReactions().queue();
+		builder.setDescription(handle.getPage(currentPage));
+		this.builder.setFooter("- Select an entry by reacting with the correct number | Page: " + currentPage + " / " + handle.getTotalPages());
+
+
+		message = message.editMessage(builder.build()).complete();
+
+		if (handle.getTotalPages() == 1) {
+
+		}else if (page == 1) {
+			message.addReaction("⏩").queue();
+		}else if (page == handle.getTotalPages()) {
+			message.addReaction("⏪").queue();
+		}else{
+			message.addReaction("⏩").queue();
+			message.addReaction("⏪").queue();
+		}
+
+
+		switch (handle.getPageSize(currentPage)) {
 			case 1:
 				message.addReaction("1️⃣").queue();
 				break;
@@ -118,9 +129,6 @@ public class SelectionPanel extends ListenerAdapter {
 				message.addReaction("9️⃣").queue();
 				break;
 		}
-
-
-
 	}
 
 	@Override
@@ -128,43 +136,18 @@ public class SelectionPanel extends ListenerAdapter {
 		if (event.getUser().isBot()) {
 			return;
 		}
-
-		if (event.getMessageIdLong() == message.getIdLong()) {
-			event.getReaction().removeReaction(event.getUser()).queue();
-			try {
-				switch (event.getReactionEmote().getEmoji()) {
-					case "1️⃣":
-						musicManager.getTrackScheduler().queue(audioPlaylist.getTracks().get(0));
+			if (event.getMessageIdLong() == message.getIdLong()) {
+				event.getReaction().removeReaction(event.getUser()).queue();
+				handle.handleReaction(event.getReaction(), currentPage);
+				switch (event.getReaction().getReactionEmote().getEmoji()) {
+					case "⏪":
+						showPage(currentPage-1);
 						break;
-					case "2️⃣":
-						musicManager.getTrackScheduler().queue(audioPlaylist.getTracks().get(1));
-						break;
-					case "3️⃣":
-						musicManager.getTrackScheduler().queue(audioPlaylist.getTracks().get(2));
-						break;
-					case "4️⃣":
-						musicManager.getTrackScheduler().queue(audioPlaylist.getTracks().get(3));
-						break;
-					case "5️⃣":
-						musicManager.getTrackScheduler().queue(audioPlaylist.getTracks().get(4));
-						break;
-					case "6️⃣":
-						musicManager.getTrackScheduler().queue(audioPlaylist.getTracks().get(5));
-						break;
-					case "7️⃣":
-						musicManager.getTrackScheduler().queue(audioPlaylist.getTracks().get(6));
-						break;
-					case "8️⃣":
-						musicManager.getTrackScheduler().queue(audioPlaylist.getTracks().get(7));
-						break;
-					case "9️⃣":
-						musicManager.getTrackScheduler().queue(audioPlaylist.getTracks().get(8));
+					case "⏩":
+						showPage(currentPage+1);
 						break;
 				}
-			}catch (IndexOutOfBoundsException e) {
-
 			}
-		}
 	}
 
 

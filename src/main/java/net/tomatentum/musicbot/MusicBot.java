@@ -3,14 +3,14 @@ package net.tomatentum.musicbot;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
-import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.tomatentum.musicbot.command.commands.FavoriteCommand;
 import net.tomatentum.musicbot.command.commands.PanelCommand;
 import net.tomatentum.musicbot.command.commands.SearchCommand;
 import net.tomatentum.musicbot.command.commands.VolumeCommand;
-import net.tomatentum.musicbot.command.utils.CommandManager;
+import net.tomatentum.musicbot.utils.CommandManager;
 import net.tomatentum.musicbot.music.AudioManager;
 import net.tomatentum.musicbot.music.MessageReceivePlayHandler;
 import net.tomatentum.musicbot.music.ReactionManager;
@@ -19,8 +19,6 @@ import org.bspfsystems.yamlconfiguration.file.YamlConfiguration;
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.IOException;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class MusicBot {
 
@@ -39,6 +37,7 @@ public class MusicBot {
 		cmdmanager.registerCommand("panel", new PanelCommand());
 		cmdmanager.registerCommand("volume", new VolumeCommand());
 		cmdmanager.registerCommand("search", new SearchCommand());
+		cmdmanager.registerCommand("favorites", new FavoriteCommand());
 
 
 

@@ -9,13 +9,13 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.tomatentum.musicbot.MusicBot;
+import net.tomatentum.musicbot.music.messagemanagers.PanelManager;
+import net.tomatentum.musicbot.music.messagemanagers.SearchOperation;
+import net.tomatentum.musicbot.utils.SelectionPanel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.bind.Marshaller;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -34,8 +34,8 @@ public class GuildMusicManager extends ListenerAdapter {
 	public GuildMusicManager(AudioPlayerManager playerManager, Guild guild) {
 		MusicBot.getInstance().getBot().addEventListener(this);
 		this.audioPlayerManager = playerManager;
-		this.guild = guild;
 		this.player = playerManager.createPlayer();
+		this.guild = guild;
 		this.trackScheduler = new TrackScheduler(player, this);
 		this.audioPlayerSendHandler = new AudioPlayerSendHandler(player);
 		this.panelManager = new PanelManager(this);
@@ -52,22 +52,30 @@ public class GuildMusicManager extends ListenerAdapter {
 	public void quit() {
 		guild.getAudioManager().closeAudioConnection();
 		guild.getAudioManager().setSendingHandler(null);
-		panelManager.setIdle();
 		trackScheduler.clear();
 		trackScheduler.setRepeating(false);
 		player.stopTrack();
 		player.setPaused(false);
 		player.setVolume(100);
+		panelManager.update();
 	}
 
 	public void setPaused(boolean paused) {
 		if (paused) {
 			player.setPaused(true);
-			panelManager.setPaused();
 		}else {
 			player.setPaused(false);
-			panelManager.setPlaying(player.getPlayingTrack());
 		}
+		panelManager.update();
+	}
+
+	public void play(AudioTrack track) {
+		trackScheduler.queue(track);
+		panelManager.update();
+	}
+	public void play(AudioPlaylist playlist) {
+		playlist.getTracks().forEach(trackScheduler::queue);
+		panelManager.update();
 	}
 
 	public void loadAndQueue(String URL) {
@@ -80,12 +88,12 @@ public class GuildMusicManager extends ListenerAdapter {
 		audioPlayerManager.loadItem(trackURL, new AudioLoadResultHandler() {
 			@Override
 			public void trackLoaded(AudioTrack audioTrack) {
-				trackScheduler.queue(audioTrack);
+				play(audioTrack);
 			}
 
 			@Override
 			public void playlistLoaded(AudioPlaylist audioPlaylist) {
-				audioPlaylist.getTracks().forEach(trackScheduler::queue);
+				play(audioPlaylist);
 			}
 
 			@Override
@@ -93,12 +101,12 @@ public class GuildMusicManager extends ListenerAdapter {
 				audioPlayerManager.loadItem("ytsearch:" + trackURL, new AudioLoadResultHandler() {
 					@Override
 					public void trackLoaded(AudioTrack audioTrack) {
-						trackScheduler.queue(audioTrack);
+						play(audioTrack);
 					}
 
 					@Override
 					public void playlistLoaded(AudioPlaylist audioPlaylist) {
-						trackScheduler.queue(audioPlaylist.getTracks().get(0));
+						play(audioPlaylist.getTracks().get(0));
 					}
 
 					@Override
@@ -130,14 +138,11 @@ public class GuildMusicManager extends ListenerAdapter {
 		audioPlayerManager.loadItem("ytsearch:" + trackURL, new AudioLoadResultHandler() {
 			@Override
 			public void trackLoaded(AudioTrack audioTrack) {
-				new SelectionPanel(channel,	new BasicAudioPlaylist("Selected Track", Collections.singletonList(audioTrack), audioTrack, true));
-				System.out.println("loaded track");
 			}
 
 			@Override
 			public void playlistLoaded(AudioPlaylist audioPlaylist) {
-				new SelectionPanel(channel, audioPlaylist);
-
+				new SearchOperation(audioPlaylist, channel, MusicBot.getInstance().getAudioManager().getMusicManager(guild));
 
 			}
 
@@ -152,32 +157,18 @@ public class GuildMusicManager extends ListenerAdapter {
 	}
 
 
+
 	public void startCleanupLoop(long delay) {
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (guild.getAudioManager().isConnected() && guild.getAudioManager().getConnectedChannel().getMembers().size() < 2) {
+				if (guild.getAudioManager().isConnected() && guild.getAudioManager().getConnectedChannel().getMembers().size() < 2 || player.getPlayingTrack() == null) {
 					quit();
 				}
 			}
 		}, delay, delay);
 	}
 
-	public void startPresenceLoop(long delay) {
-		new Timer().schedule(new TimerTask() {
-			@Override
-			public void run() {
-				if (player.isPaused()) {
-					MusicBot.getInstance().getBot().getPresence().setActivity(Activity.playing("(PAUSED) " + player.getPlayingTrack().getInfo().title + " [" + MusicBot.getTimestamp(player.getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(player.getPlayingTrack().getDuration()) + "]"));
-
-				}else if (player.getPlayingTrack() != null) {
-					MusicBot.getInstance().getBot().getPresence().setActivity(Activity.playing(player.getPlayingTrack().getInfo().title + " [" + MusicBot.getTimestamp(player.getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(player.getPlayingTrack().getDuration()) + "]"));
-
-				}else
-					MusicBot.getInstance().getBot().getPresence().setActivity(null);
-			}
-		}, delay, delay);
-	}
 
 	@Override
 	public void onGuildVoiceLeave(@NotNull GuildVoiceLeaveEvent event) {
@@ -200,5 +191,9 @@ public class GuildMusicManager extends ListenerAdapter {
 
 	public PanelManager getPanelManager() {
 		return panelManager;
+	}
+
+	public AudioPlayerManager getAudioPlayerManager() {
+		return audioPlayerManager;
 	}
 }
