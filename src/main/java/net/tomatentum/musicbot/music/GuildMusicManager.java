@@ -7,6 +7,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import net.dv8tion.jda.api.audio.hooks.ConnectionStatus;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -28,6 +29,7 @@ public class GuildMusicManager extends ListenerAdapter {
 	private AudioPlayerSendHandler audioPlayerSendHandler;
 	private AudioPlayerManager audioPlayerManager;
 	private PanelManager panelManager;
+	private VoiceChannel latestChannel;
 
 
 
@@ -41,11 +43,13 @@ public class GuildMusicManager extends ListenerAdapter {
 		this.panelManager = new PanelManager(this);
 		player.addListener(trackScheduler);
 
-		this.startCleanupLoop(30000);
+		this.startCleanupLoop(60000);
+		guild.getAudioManager().setSelfDeafened(true);
 	}
 	public void connect(VoiceChannel channel) {
 		guild.getAudioManager().openAudioConnection(channel);
 		guild.getAudioManager().setSendingHandler(audioPlayerSendHandler);
+		latestChannel = channel;
 
 	}
 
@@ -70,12 +74,20 @@ public class GuildMusicManager extends ListenerAdapter {
 	}
 
 	public void play(AudioTrack track) {
-		trackScheduler.queue(track);
+		trackScheduler.queue(track.makeClone());
 		panelManager.update();
 	}
+
+
+
 	public void play(AudioPlaylist playlist) {
-		playlist.getTracks().forEach(trackScheduler::queue);
-		panelManager.update();
+
+
+		if (playlist.getTracks().size() <= 20) {
+			playlist.getTracks().forEach(track -> trackScheduler.queue(track.makeClone()));
+			panelManager.update();
+		}else
+			panelManager.getChannel().sendMessage("⛔ Playlist too long").complete().delete().queueAfter(5, TimeUnit.SECONDS);
 	}
 
 	public void loadAndQueue(String URL) {
@@ -162,6 +174,10 @@ public class GuildMusicManager extends ListenerAdapter {
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
+				if (panelManager.getMessage() == null) {
+					return;
+				}
+
 				if (guild.getAudioManager().isConnected() && guild.getAudioManager().getConnectedChannel().getMembers().size() < 2 || player.getPlayingTrack() == null) {
 					quit();
 				}
@@ -195,5 +211,9 @@ public class GuildMusicManager extends ListenerAdapter {
 
 	public AudioPlayerManager getAudioPlayerManager() {
 		return audioPlayerManager;
+	}
+
+	public VoiceChannel getLatestChannel() {
+		return latestChannel;
 	}
 }

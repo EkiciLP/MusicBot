@@ -1,5 +1,7 @@
 package net.tomatentum.musicbot.utils;
 
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,24 +28,35 @@ public class PageManager<T> {
 			}
 
 			return onPage;
-		}else
-			return null;
+		} else
+			return new ArrayList<>();
 	}
 
 	public void addItem(T Item) {
-			items.add(Item);
+		if (items.contains(Item)) {
+			return;
+		}
+		items.add(Item);
 	}
 
-	public void removeItem(T Item) throws NullPointerException{
+	public void removeItem(T Item) throws NullPointerException {
+
+
 		if (items.contains(Item)) {
 			items.remove(Item);
-		}else
+		} else {
 			throw new NullPointerException("The Item does not exist");
+
+		}
 	}
 
 	public int getTotalPages() {
 		int totalPages = (int) Math.ceil((double) items.size() / pageSize);
 
 		return totalPages;
+	}
+
+	public List<T> getContents() {
+		return items;
 	}
 }

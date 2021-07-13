@@ -42,7 +42,7 @@ public class SearchOperation implements Selectable {
 
 	@Override
 	public int getPageSize(int Page) {
-		return 9;
+		return pageManager.getPage(Page).size();
 	}
 
 	@Override
@@ -53,34 +53,35 @@ public class SearchOperation implements Selectable {
 	@Override
 	public void handleReaction(MessageReaction reaction, int currentpage) {
 		List<AudioTrack> contents = pageManager.getPage(currentpage);
+
 		try {
 			switch (reaction.getReactionEmote().getEmoji()) {
 				case "1️⃣":
-					musicManager.play(playlist.getTracks().get(0));
+					musicManager.play(contents.get(0));
 					break;
 				case "2️⃣":
-					musicManager.play(playlist.getTracks().get(1));
+					musicManager.play(contents.get(1));
 					break;
 				case "3️⃣":
-					musicManager.play(playlist.getTracks().get(2));
+					musicManager.play(contents.get(2));
 					break;
 				case "4️⃣":
-					musicManager.play(playlist.getTracks().get(3));
+					musicManager.play(contents.get(3));
 					break;
 				case "5️⃣":
-					musicManager.play(playlist.getTracks().get(4));
+					musicManager.play(contents.get(4));
 					break;
 				case "6️⃣":
-					musicManager.play(playlist.getTracks().get(5));
+					musicManager.play(contents.get(5));
 					break;
 				case "7️⃣":
-					musicManager.play(playlist.getTracks().get(6));
+					musicManager.play(contents.get(6));
 					break;
 				case "8️⃣":
-					musicManager.play(playlist.getTracks().get(7));
+					musicManager.play(contents.get(7));
 					break;
 				case "9️⃣":
-					musicManager.play(playlist.getTracks().get(8));
+					musicManager.play(contents.get(8));
 					break;
 			}
 		}catch (IndexOutOfBoundsException ignored) {}

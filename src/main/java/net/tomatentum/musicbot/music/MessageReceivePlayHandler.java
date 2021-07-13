@@ -13,8 +13,17 @@ public class MessageReceivePlayHandler extends ListenerAdapter {
 			return;
 		}
 		GuildMusicManager musicManager = MusicBot.getInstance().getAudioManager().getMusicManager(event.getGuild());
+
+		if (musicManager.getGuild().getAudioManager().isConnected() && !event.getMember().getVoiceState().getChannel().equals(musicManager.getGuild().getAudioManager().getConnectedChannel())) {
+			event.getMessage().delete().queue();
+			event.getChannel().sendMessage("🛑 Bot already playing").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+
+			return;
+		}
 		if (event.getTextChannel().equals(musicManager.getPanelManager().getChannel())) {
 			event.getMessage().delete().queueAfter(1, TimeUnit.SECONDS);
+
+
 
 			if (event.getMember().getVoiceState().inVoiceChannel()) {
 					musicManager.connect(event.getMember().getVoiceState().getChannel());

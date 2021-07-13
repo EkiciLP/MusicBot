@@ -71,10 +71,10 @@ public class ReactionManager extends ListenerAdapter {
 							musicManager.getPanelManager().update();
 						break;
 					case "⭐":
-							favoriteSongManager.add(musicManager.getPlayer().getPlayingTrack());
+							favoriteSongManager.add(musicManager.getPlayer().getPlayingTrack().getIdentifier());
 						break;
 					case "❌":
-						favoriteSongManager.remove(musicManager.getPlayer().getPlayingTrack());
+						favoriteSongManager.remove(musicManager.getPlayer().getPlayingTrack().getIdentifier());
 						break;
 
 				}

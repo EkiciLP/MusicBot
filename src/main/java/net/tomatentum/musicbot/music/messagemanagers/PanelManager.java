@@ -24,13 +24,18 @@ public class PanelManager {
 
 	public PanelManager(GuildMusicManager musicManager) {
 		this.guildMusicManager = musicManager;
+		this.builder = new EmbedBuilder();
 		try {
-			this.channel = MusicBot.getInstance().getBot().getTextChannelById(MusicBot.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".channelid"));
+			this.channel = musicManager.getGuild().getTextChannelById(MusicBot.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".channelid"));
 			this.message = channel.retrieveMessageById(MusicBot.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".messageid")).complete();
-			this.builder = new EmbedBuilder(message.getEmbeds().get(0));
-		}catch (NullPointerException ignored) {
+		}catch (NullPointerException e) {
+			System.out.println("No panel found for " + musicManager.getGuild().getName());
 		}
-		startUpdateLoop(5000);
+
+
+		if (message != null) {
+			startUpdateLoop(5000);
+		}
 	}
 
 
@@ -54,6 +59,7 @@ public class PanelManager {
 			this.message.addReaction("🔉").queue();
 			this.message.addReaction("⭐").queue();
 			this.message.addReaction("❌").queue();
+			startUpdateLoop(5000);
 		}catch (Exception e) {
 			System.out.println("error");
 		}
@@ -109,9 +115,12 @@ public class PanelManager {
 		}else
 			builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "% | " + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()) + " | Looping Enabled" );
 
+
 		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).embed(builder.build()).complete();
 
-		new Timer().schedule(new TimerTask() {
+
+
+			new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
 				recentlchanged = false;
@@ -125,7 +134,7 @@ public class PanelManager {
 			@Override
 			public void run() {
 				if (!recentlchanged) {
-					if (!guildMusicManager.getPlayer().isPaused()) {
+					if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
 						if (message != null) {
 							if (guildMusicManager.getPlayer().isPaused()) {
 								setPaused();

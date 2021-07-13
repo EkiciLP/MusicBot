@@ -34,20 +34,26 @@ public class SelectionPanel extends ListenerAdapter {
 		this.builder.setTitle(Title);
 		this.builder.setTimestamp(OffsetDateTime.now());
 
-		message = channel.sendMessage(builder.build()).complete();
+		this.message = channel.sendMessage(builder.build()).complete();
 		showPage(currentPage);
 
-		message.delete().queueAfter(1, TimeUnit.MINUTES);
+		this.message.delete().queueAfter(1, TimeUnit.MINUTES);
 
 
 
 	}
 
 	public void showPage(int page) {
+
+		if (handle.getTotalPages() == 0) {
+			builder.setDescription("Favorites Empty");
+			message = message.editMessage(builder.build()).complete();
+			return;
+		}
 		currentPage = page;
 		message.clearReactions().queue();
 		builder.setDescription(handle.getPage(currentPage));
-		this.builder.setFooter("- Select an entry by reacting with the correct number | Page: " + currentPage + " / " + handle.getTotalPages());
+		builder.setFooter("- Select an entry by reacting with the correct number | Page: " + currentPage + " / " + handle.getTotalPages());
 
 
 		message = message.editMessage(builder.build()).complete();

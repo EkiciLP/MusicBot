@@ -9,9 +9,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.api.entities.Guild;
 import net.tomatentum.musicbot.MusicBot;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -28,17 +26,27 @@ public class TrackScheduler extends AudioEventAdapter {
 	}
 
 	public void queue(AudioTrack audioTrack) {
+		if (musicManager.getLatestChannel() != null)
+			musicManager.connect(musicManager.getLatestChannel());
+
+
 		if (player.getPlayingTrack() == null) {
 			player.playTrack(audioTrack);
 		}else {
 			queue.offer(audioTrack);
-
 		}
 	}
 
 	public void clear() {
 		queue.clear();
-		musicManager.getPanelManager().update();
+
+		new Timer().schedule(new TimerTask() {
+			@Override
+			public void run() {
+				musicManager.getPanelManager().update();
+
+			}
+		}, 500);
 	}
 
 	public AudioTrack nextTrack() throws IllegalArgumentException {
@@ -55,20 +63,23 @@ public class TrackScheduler extends AudioEventAdapter {
 
 	@Override
 	public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+		System.out.println("track ended " + track.getInfo().title);
 		if (endReason.mayStartNext) {
 			if (repeating) {
+				System.out.println("repeated!");
 				AudioTrack audioTrack = track.makeClone();
 				player.playTrack(track.makeClone());
 				musicManager.getPanelManager().update();
 
-			}else {
+			} else {
 				if (!queue.isEmpty()) {
+					System.out.println("queued");
 					AudioTrack audioTrack = queue.poll();
 					player.playTrack(audioTrack);
 					musicManager.getPanelManager().update();
-				}
+				} else
+					musicManager.getPanelManager().update();
 			}
-
 		}
 	}
 

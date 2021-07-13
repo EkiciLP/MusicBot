@@ -4,6 +4,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -21,23 +22,27 @@ public class FavoriteSongManager implements Selectable {
 
 	private final Member member;
 	private final GuildMusicManager musicManager;
-	private PageManager<AudioTrack> pageManager;
+	private final PageManager<String> pageManager;
+	private final List<AudioTrackInfo> songInfos;
 
 	public FavoriteSongManager(Member member, GuildMusicManager musicManager) {
+		this.songInfos = new ArrayList<>();
+		this.pageManager = new PageManager<>(new ArrayList<>(), 9);
 		this.member = member;
 		this.musicManager = musicManager;
 		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
-
 		for (String identifier : identifiers) {
+			add(identifier);
+
 			musicManager.getAudioPlayerManager().loadItem("ytsearch:" + identifier, new AudioLoadResultHandler() {
 				@Override
 				public void trackLoaded(AudioTrack audioTrack) {
-					add(audioTrack);
+					songInfos.add(audioTrack.getInfo());
 				}
 
 				@Override
 				public void playlistLoaded(AudioPlaylist audioPlaylist) {
-					add(audioPlaylist.getTracks().get(0));
+					songInfos.add(audioPlaylist.getTracks().get(0).getInfo());
 				}
 
 				@Override
@@ -51,16 +56,18 @@ public class FavoriteSongManager implements Selectable {
 				}
 			});
 		}
-		this.pageManager = new PageManager<>(new ArrayList<>(), 9);
+
 
 	}
-	public void add(AudioTrack track) {
-		System.out.println(track.getInfo().title);
-		pageManager.addItem(track);
-		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
-		if (!identifiers.contains(track.getIdentifier()))
-			identifiers.add(track.getIdentifier());
+	public void add(String identifier) {
 
+		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
+		pageManager.addItem(identifier);
+		if (!identifiers.contains(identifier)) {
+			identifiers.add(identifier);
+			System.out.println("added to fav");
+
+		}
 		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + member.getIdLong(), identifiers);
 		try {
 			MusicBot.getInstance().getConfiguration().save(MusicBot.getInstance().getConfigFile());
@@ -69,12 +76,12 @@ public class FavoriteSongManager implements Selectable {
 		}
 	}
 
-	public void remove(AudioTrack track) {
-		pageManager.removeItem(track);
+	public void remove(String identifier) {
+		pageManager.removeItem(identifier);
 
 		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
 
-		identifiers.remove(track.getIdentifier());
+		identifiers.remove(identifier);
 
 		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + member.getIdLong(), identifiers);
 		try {
@@ -86,16 +93,13 @@ public class FavoriteSongManager implements Selectable {
 	public String getPage(int page) {
 		int count = 1;
 		StringBuilder builder = new StringBuilder();
-		List<AudioTrack> contents = pageManager.getPage(page);
 
-		if (contents != null) {
-			for (AudioTrack track : contents) {
-				builder.append(count).append(": ").append(track.getInfo().title).append(" [").append(MusicBot.getTimestamp(track.getDuration())).append("]\n");
+
+			for (AudioTrackInfo track : songInfos) {
+				builder.append(count).append(": ").append(track.title).append(" [").append(MusicBot.getTimestamp(track.length)).append("]\n");
 				count++;
 			}
 			return builder.toString();
-		}else
-			return null;
 	}
 
 	public void showPanel(TextChannel channel) {
@@ -104,38 +108,41 @@ public class FavoriteSongManager implements Selectable {
 
 	@Override
 	public void handleReaction(MessageReaction reaction, int currentpage) {
-		List<AudioTrack> contents = pageManager.getPage(currentpage);
+		List<String> contents = pageManager.getPage(currentpage);
+
 		try {
 			switch (reaction.getReactionEmote().getEmoji()) {
 				case "1️⃣":
-					musicManager.play(contents.get(0));
+					musicManager.loadAndQueue(contents.get(0));
 					break;
 				case "2️⃣":
-					musicManager.play(contents.get(1));
+					musicManager.loadAndQueue(contents.get(1));
 					break;
 				case "3️⃣":
-					musicManager.play(contents.get(2));
+					musicManager.loadAndQueue(contents.get(2));
 					break;
 				case "4️⃣":
-					musicManager.play(contents.get(3));
+					musicManager.loadAndQueue(contents.get(3));
 					break;
 				case "5️⃣":
-					musicManager.play(contents.get(4));
+					musicManager.loadAndQueue(contents.get(4));
 					break;
 				case "6️⃣":
-					musicManager.play(contents.get(5));
+					musicManager.loadAndQueue(contents.get(5));
 					break;
 				case "7️⃣":
-					musicManager.play(contents.get(6));
+					musicManager.loadAndQueue(contents.get(6));
 					break;
 				case "8️⃣":
-					musicManager.play(contents.get(7));
+					musicManager.loadAndQueue(contents.get(7));
 					break;
 				case "9️⃣":
-					musicManager.play(contents.get(8));
+					musicManager.loadAndQueue(contents.get(8));
 					break;
 			}
-		}catch (IndexOutOfBoundsException ignored) {}
+		}catch (IndexOutOfBoundsException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override
