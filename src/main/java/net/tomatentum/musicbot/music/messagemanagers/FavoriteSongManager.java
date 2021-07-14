@@ -22,27 +22,24 @@ public class FavoriteSongManager implements Selectable {
 
 	private final Member member;
 	private final GuildMusicManager musicManager;
-	private final PageManager<String> pageManager;
-	private final List<AudioTrackInfo> songInfos;
+	private final PageManager<AudioTrack> pageManager;
 
 	public FavoriteSongManager(Member member, GuildMusicManager musicManager) {
-		this.songInfos = new ArrayList<>();
 		this.pageManager = new PageManager<>(new ArrayList<>(), 9);
 		this.member = member;
 		this.musicManager = musicManager;
 		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
 		for (String identifier : identifiers) {
-			add(identifier);
 
 			musicManager.getAudioPlayerManager().loadItem("ytsearch:" + identifier, new AudioLoadResultHandler() {
 				@Override
 				public void trackLoaded(AudioTrack audioTrack) {
-					songInfos.add(audioTrack.getInfo());
+					add(audioTrack);
 				}
 
 				@Override
 				public void playlistLoaded(AudioPlaylist audioPlaylist) {
-					songInfos.add(audioPlaylist.getTracks().get(0).getInfo());
+					add(audioPlaylist.getTracks().get(0));
 				}
 
 				@Override
@@ -59,13 +56,12 @@ public class FavoriteSongManager implements Selectable {
 
 
 	}
-	public void add(String identifier) {
+	public void add(AudioTrack track) {
 
 		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
-		pageManager.addItem(identifier);
-		if (!identifiers.contains(identifier)) {
-			identifiers.add(identifier);
-			System.out.println("added to fav");
+		pageManager.addItem(track);
+		if (!identifiers.contains(track.getIdentifier())) {
+			identifiers.add(track.getIdentifier());
 
 		}
 		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + member.getIdLong(), identifiers);
@@ -76,12 +72,16 @@ public class FavoriteSongManager implements Selectable {
 		}
 	}
 
-	public void remove(String identifier) {
-		pageManager.removeItem(identifier);
+	public void remove(AudioTrack track) {
+		for (AudioTrack itrack : pageManager.getContents()) {
+			if (itrack.getIdentifier().equals(track.getIdentifier())) {
+				pageManager.removeItem(itrack);
+			}
+		}
 
 		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
 
-		identifiers.remove(identifier);
+		identifiers.remove(track.getIdentifier());
 
 		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + member.getIdLong(), identifiers);
 		try {
@@ -93,6 +93,11 @@ public class FavoriteSongManager implements Selectable {
 	public String getPage(int page) {
 		int count = 1;
 		StringBuilder builder = new StringBuilder();
+		List<AudioTrackInfo> songInfos = new ArrayList<>();
+
+		for (AudioTrack track : pageManager.getPage(page)) {
+			songInfos.add(track.getInfo());
+		}
 
 
 			for (AudioTrackInfo track : songInfos) {
@@ -108,36 +113,36 @@ public class FavoriteSongManager implements Selectable {
 
 	@Override
 	public void handleReaction(MessageReaction reaction, int currentpage) {
-		List<String> contents = pageManager.getPage(currentpage);
+		List<AudioTrack> contents = pageManager.getPage(currentpage);
 
 		try {
 			switch (reaction.getReactionEmote().getEmoji()) {
 				case "1️⃣":
-					musicManager.loadAndQueue(contents.get(0));
+					musicManager.play(contents.get(0).makeClone());
 					break;
 				case "2️⃣":
-					musicManager.loadAndQueue(contents.get(1));
+					musicManager.play(contents.get(1).makeClone());
 					break;
 				case "3️⃣":
-					musicManager.loadAndQueue(contents.get(2));
+					musicManager.play(contents.get(2).makeClone());
 					break;
 				case "4️⃣":
-					musicManager.loadAndQueue(contents.get(3));
+					musicManager.play(contents.get(3).makeClone());
 					break;
 				case "5️⃣":
-					musicManager.loadAndQueue(contents.get(4));
+					musicManager.play(contents.get(4).makeClone());
 					break;
 				case "6️⃣":
-					musicManager.loadAndQueue(contents.get(5));
+					musicManager.play(contents.get(5).makeClone());
 					break;
 				case "7️⃣":
-					musicManager.loadAndQueue(contents.get(6));
+					musicManager.play(contents.get(6).makeClone());
 					break;
 				case "8️⃣":
-					musicManager.loadAndQueue(contents.get(7));
+					musicManager.play(contents.get(7).makeClone());
 					break;
 				case "9️⃣":
-					musicManager.loadAndQueue(contents.get(8));
+					musicManager.play(contents.get(8).makeClone());
 					break;
 			}
 		}catch (IndexOutOfBoundsException ex) {
