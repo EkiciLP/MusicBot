@@ -31,7 +31,7 @@ public class FavoriteSongManager implements Selectable {
 		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
 		for (String identifier : identifiers) {
 
-			musicManager.getAudioPlayerManager().loadItem("ytsearch:" + identifier, new AudioLoadResultHandler() {
+			musicManager.getAudioPlayerManager().loadItem(identifier, new AudioLoadResultHandler() {
 				@Override
 				public void trackLoaded(AudioTrack audioTrack) {
 					add(audioTrack);
@@ -61,7 +61,7 @@ public class FavoriteSongManager implements Selectable {
 		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
 		pageManager.addItem(track);
 		if (!identifiers.contains(track.getIdentifier())) {
-			identifiers.add(track.getIdentifier());
+			identifiers.add(track.getInfo().uri);
 
 		}
 		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + member.getIdLong(), identifiers);
@@ -81,7 +81,7 @@ public class FavoriteSongManager implements Selectable {
 
 		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
 
-		identifiers.remove(track.getIdentifier());
+		identifiers.remove(track.getInfo().uri);
 
 		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + member.getIdLong(), identifiers);
 		try {

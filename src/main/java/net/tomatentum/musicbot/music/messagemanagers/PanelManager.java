@@ -78,7 +78,7 @@ public class PanelManager {
 		builder.setColor(Color.RED);
 		builder.setAuthor("Stopped");
 		builder.setTitle(" - Nothing Playing -");
-		builder.setImage("https://i.imgur.com/9Q80W4c.png");
+		builder.setImage("https://i.imgur.com/dTGc0JA.png");
 	}
 
 	public void setPlaying(AudioTrack track) {
