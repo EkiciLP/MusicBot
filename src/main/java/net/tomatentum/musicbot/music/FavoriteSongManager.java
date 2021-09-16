@@ -1,15 +1,15 @@
-package net.tomatentum.musicbot.music.messagemanagers;
+package net.tomatentum.musicbot.music;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.tomatentum.musicbot.MusicBot;
-import net.tomatentum.musicbot.music.GuildMusicManager;
 import net.tomatentum.musicbot.utils.PageManager;
 import net.tomatentum.musicbot.utils.Selectable;
 import net.tomatentum.musicbot.utils.SelectionPanel;
@@ -17,18 +17,19 @@ import net.tomatentum.musicbot.utils.SelectionPanel;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class FavoriteSongManager implements Selectable {
 
-	private final Member member;
+	private final User user;
 	private final GuildMusicManager musicManager;
 	private final PageManager<AudioTrack> pageManager;
 
-	public FavoriteSongManager(Member member, GuildMusicManager musicManager) {
+	public FavoriteSongManager(User user, GuildMusicManager musicManager) {
 		this.pageManager = new PageManager<>(new ArrayList<>(), 9);
-		this.member = member;
+		this.user = user;
 		this.musicManager = musicManager;
-		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
+		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + user.getMember().getIdLong());
 		for (String identifier : identifiers) {
 
 			musicManager.getAudioPlayerManager().loadItem(identifier, new AudioLoadResultHandler() {
@@ -44,12 +45,12 @@ public class FavoriteSongManager implements Selectable {
 
 				@Override
 				public void noMatches() {
-
+					System.out.println("No matches: " + identifier);
 				}
 
 				@Override
 				public void loadFailed(FriendlyException e) {
-
+					System.out.println(e.getMessage());
 				}
 			});
 		}
@@ -58,13 +59,13 @@ public class FavoriteSongManager implements Selectable {
 	}
 	public void add(AudioTrack track) {
 
-		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
+		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + user.getMember().getIdLong());
 		pageManager.addItem(track);
-		if (!identifiers.contains(track.getIdentifier())) {
+		if (!identifiers.contains(track.getInfo().uri)) {
 			identifiers.add(track.getInfo().uri);
 
 		}
-		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + member.getIdLong(), identifiers);
+		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + user.getMember().getIdLong(), identifiers);
 		try {
 			MusicBot.getInstance().getConfiguration().save(MusicBot.getInstance().getConfigFile());
 		} catch (IOException e) {
@@ -73,17 +74,23 @@ public class FavoriteSongManager implements Selectable {
 	}
 
 	public void remove(AudioTrack track) {
-		for (AudioTrack itrack : pageManager.getContents()) {
-			if (itrack.getIdentifier().equals(track.getIdentifier())) {
-				pageManager.removeItem(itrack);
-			}
-		}
 
-		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + member.getIdLong());
+		List<String> uris = new ArrayList<>();
+		pageManager.getContents().forEach(itrack -> {
+			if (track.getInfo().uri.equals(itrack.getInfo().uri))
+				uris.add(itrack.getInfo().uri);
+		});
+
+
+
+			if (uris.contains(track.getInfo().uri))
+				pageManager.removeItem(track);
+
+		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + user.getMember().getIdLong());
 
 		identifiers.remove(track.getInfo().uri);
 
-		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + member.getIdLong(), identifiers);
+		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + user.getMember().getIdLong(), identifiers);
 		try {
 			MusicBot.getInstance().getConfiguration().save(MusicBot.getInstance().getConfigFile());
 		} catch (IOException e) {
@@ -108,12 +115,17 @@ public class FavoriteSongManager implements Selectable {
 	}
 
 	public void showPanel(TextChannel channel) {
-		new SelectionPanel(channel, "Favorite Songs of: " + member.getEffectiveName(), this);
+		new SelectionPanel(channel, "Favorite Songs of: " + user.getMember().getEffectiveName(), this);
 	}
 
 	@Override
-	public void handleReaction(MessageReaction reaction, int currentpage) {
+	public void handleReaction(MessageReaction reaction, int currentpage, Member member) {
 		List<AudioTrack> contents = pageManager.getPage(currentpage);
+		if (!member.getVoiceState().inVoiceChannel()) {
+			return;
+		}
+
+		musicManager.connect(member.getVoiceState().getChannel());
 
 		try {
 			switch (reaction.getReactionEmote().getEmoji()) {
@@ -158,6 +170,34 @@ public class FavoriteSongManager implements Selectable {
 	@Override
 	public int getTotalPages() {
 		return pageManager.getTotalPages();
+	}
+
+	public static class User {
+
+		private final long userid;
+		private final long guildid;
+
+		public User(Member member) {
+			this.userid = member.getIdLong();
+			this.guildid = member.getGuild().getIdLong();
+		}
+
+		public Member getMember() {
+			return MusicBot.getInstance().getBot().getGuildById(guildid).getMemberById(userid);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+			User user = (User) o;
+			return userid == user.userid && guildid == user.guildid;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(userid, guildid);
+		}
 	}
 
 }

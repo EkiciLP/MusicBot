@@ -1,10 +1,9 @@
 package net.tomatentum.musicbot.music;
 
-import net.dv8tion.jda.api.entities.Guild;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.tomatentum.musicbot.MusicBot;
-import net.tomatentum.musicbot.music.messagemanagers.FavoriteSongManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -19,7 +18,7 @@ public class ReactionManager extends ListenerAdapter {
 		}
 
 		GuildMusicManager musicManager = MusicBot.getInstance().getAudioManager().getMusicManager(event.getGuild());
-		FavoriteSongManager favoriteSongManager = MusicBot.getInstance().getAudioManager().getFavoriteSongManager(event.getMember(), event.getGuild());
+		FavoriteSongManager favoriteSongManager = MusicBot.getInstance().getAudioManager().getFavoriteSongManager(event.getMember());
 		if (event.getMessageIdLong() == musicManager.getPanelManager().getMessage().getIdLong()) {
 			event.getReaction().removeReaction(event.getUser()).queue();
 			if (event.getGuild().getAudioManager().isConnected() && event.getGuild().getAudioManager().getConnectedChannel().getMembers().contains(event.getMember())) {
@@ -57,18 +56,15 @@ public class ReactionManager extends ListenerAdapter {
 							musicManager.getTrackScheduler().shuffle();
 							event.getChannel().sendMessage("🔀 Queue Shuffled!").complete().delete().queueAfter(5, TimeUnit.SECONDS);
 						break;
-					case "🔊":
-							int morevolume = musicManager.getPlayer().getVolume() + 10;
+					case "↪":
+						AudioTrack currenttrack = musicManager.getPlayer().getPlayingTrack();
 
-							musicManager.getPlayer().setVolume(Integer.min(100, Integer.max(1, morevolume)));
-							musicManager.getPanelManager().update();
-
+						musicManager.skip(30);
+						musicManager.getPanelManager().update();
 						break;
-					case "🔉":
-							int lessvolume = musicManager.getPlayer().getVolume() - 10;
-
-							musicManager.getPlayer().setVolume(Integer.min(100, Integer.max(1, lessvolume)));
-							musicManager.getPanelManager().update();
+					case "↩":
+						musicManager.rewind(30);
+						musicManager.getPanelManager().update();
 						break;
 					case "⭐":
 							favoriteSongManager.add(musicManager.getPlayer().getPlayingTrack());

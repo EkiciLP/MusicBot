@@ -144,7 +144,7 @@ public class SelectionPanel extends ListenerAdapter {
 		}
 			if (event.getMessageIdLong() == message.getIdLong()) {
 				event.getReaction().removeReaction(event.getUser()).queue();
-				handle.handleReaction(event.getReaction(), currentPage);
+				handle.handleReaction(event.getReaction(), currentPage, event.getMember());
 				switch (event.getReaction().getReactionEmote().getEmoji()) {
 					case "⏪":
 						showPage(currentPage-1);

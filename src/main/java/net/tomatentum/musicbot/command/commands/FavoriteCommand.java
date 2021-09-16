@@ -1,11 +1,10 @@
 package net.tomatentum.musicbot.command.commands;
 
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.tomatentum.musicbot.MusicBot;
-import net.tomatentum.musicbot.music.messagemanagers.FavoriteSongManager;
+import net.tomatentum.musicbot.music.FavoriteSongManager;
 import net.tomatentum.musicbot.utils.GuildCommand;
 
 import java.util.concurrent.TimeUnit;
@@ -19,7 +18,7 @@ public class FavoriteCommand implements GuildCommand {
 			if (!channel.getGuild().getAudioManager().isConnected()) {
 				MusicBot.getInstance().getAudioManager().getMusicManager(channel.getGuild()).connect(member.getVoiceState().getChannel());
 			}
-			FavoriteSongManager favoriteSongManager = MusicBot.getInstance().getAudioManager().getFavoriteSongManager(member, channel.getGuild());
+			FavoriteSongManager favoriteSongManager = MusicBot.getInstance().getAudioManager().getFavoriteSongManager(member);
 
 			favoriteSongManager.showPanel(channel);
 		}

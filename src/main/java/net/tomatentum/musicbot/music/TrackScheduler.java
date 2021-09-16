@@ -26,8 +26,6 @@ public class TrackScheduler extends AudioEventAdapter {
 	}
 
 	public void queue(AudioTrack audioTrack) {
-		if (musicManager.getLatestChannel() != null)
-			musicManager.connect(musicManager.getLatestChannel());
 
 
 		if (player.getPlayingTrack() == null) {
@@ -63,17 +61,16 @@ public class TrackScheduler extends AudioEventAdapter {
 
 	@Override
 	public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-		System.out.println("track ended " + track.getInfo().title);
+
+		System.out.println("track " + track.getInfo().title + " ended on " + musicManager.getGuild() + " with reason " + endReason);
 		if (endReason.mayStartNext) {
 			if (repeating) {
-				System.out.println("repeated!");
 				AudioTrack audioTrack = track.makeClone();
 				player.playTrack(track.makeClone());
 				musicManager.getPanelManager().update();
 
 			} else {
 				if (!queue.isEmpty()) {
-					System.out.println("queued");
 					AudioTrack audioTrack = queue.poll();
 					player.playTrack(audioTrack);
 					musicManager.getPanelManager().update();
@@ -95,6 +92,10 @@ public class TrackScheduler extends AudioEventAdapter {
 		StringBuilder builder = new StringBuilder();
 		int count = 1;
 		for (AudioTrack track : queue) {
+
+			if (count >= 20)
+				break;
+
 			builder.append(count).append(": ").append(track.getInfo().title).append(" [").append(MusicBot.getTimestamp(track.getDuration())).append("]\n");
 			count++;
 		}

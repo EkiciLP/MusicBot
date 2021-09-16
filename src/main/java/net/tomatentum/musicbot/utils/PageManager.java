@@ -41,6 +41,28 @@ public class PageManager<T> {
 
 	public void removeItem(T Item) throws NullPointerException {
 
+		if (Item instanceof AudioTrack) {
+			List<String> uris = new ArrayList<>();
+			items.forEach(item -> {
+				AudioTrack track = (AudioTrack) item;
+				uris.add(((AudioTrack) item).getInfo().uri);
+			});
+
+			AudioTrack track = (AudioTrack) Item;
+
+
+
+			List<T> toremove = new ArrayList<>();
+			items.forEach(iitem -> {
+				if (((AudioTrack) iitem).getInfo().uri.equals(((AudioTrack) Item).getInfo().uri)) {
+					toremove.add(iitem);
+				}
+			});
+
+			items.removeAll(toremove);
+			return;
+		}
+
 
 		if (items.contains(Item)) {
 			items.remove(Item);

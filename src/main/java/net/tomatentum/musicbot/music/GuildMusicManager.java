@@ -17,6 +17,7 @@ import net.tomatentum.musicbot.music.messagemanagers.SearchOperation;
 import net.tomatentum.musicbot.utils.SelectionPanel;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -29,7 +30,6 @@ public class GuildMusicManager extends ListenerAdapter {
 	private AudioPlayerSendHandler audioPlayerSendHandler;
 	private AudioPlayerManager audioPlayerManager;
 	private PanelManager panelManager;
-	private VoiceChannel latestChannel;
 
 
 
@@ -49,13 +49,11 @@ public class GuildMusicManager extends ListenerAdapter {
 	public void connect(VoiceChannel channel) {
 		guild.getAudioManager().openAudioConnection(channel);
 		guild.getAudioManager().setSendingHandler(audioPlayerSendHandler);
-		latestChannel = channel;
 
 	}
 
 	public void quit() {
 		guild.getAudioManager().closeAudioConnection();
-		guild.getAudioManager().setSendingHandler(null);
 		trackScheduler.clear();
 		trackScheduler.setRepeating(false);
 		player.stopTrack();
@@ -73,24 +71,32 @@ public class GuildMusicManager extends ListenerAdapter {
 		panelManager.update();
 	}
 
+	public void skip(long seconds) {
+		AudioTrack currenttrack = getPlayer().getPlayingTrack();
+
+		currenttrack.setPosition((long) Math.min(currenttrack.getDuration()-0.5, currenttrack.getPosition()+(seconds*1000)));
+	}
+
+	public void rewind(long seconds) {
+		AudioTrack currenttrack = getPlayer().getPlayingTrack();
+
+		currenttrack.setPosition((long) Math.max(0, currenttrack.getPosition()-(seconds*1000)));
+	}
+
 	public void play(AudioTrack track) {
+
 		trackScheduler.queue(track.makeClone());
 		panelManager.update();
 	}
 
-
-
 	public void play(AudioPlaylist playlist) {
 
-
-		if (playlist.getTracks().size() <= 20) {
 			playlist.getTracks().forEach(track -> trackScheduler.queue(track.makeClone()));
 			panelManager.update();
-		}else
-			panelManager.getChannel().sendMessage("⛔ Playlist too long").complete().delete().queueAfter(5, TimeUnit.SECONDS);
 	}
 
-	public void loadAndQueue(String URL) {
+
+	public void play(String URL) {
 		String trackURL;
 		if (URL.startsWith("<") && URL.endsWith(">")) {
 			trackURL = URL.substring(1, URL.length()-1);
@@ -182,14 +188,15 @@ public class GuildMusicManager extends ListenerAdapter {
 					quit();
 				}
 			}
-		}, delay, delay);
+		}, 0, delay);
 	}
 
 
 	@Override
 	public void onGuildVoiceLeave(@NotNull GuildVoiceLeaveEvent event) {
 		if (event.getMember().getUser().getIdLong() == MusicBot.getInstance().getBot().getSelfUser().getIdLong()) {
-			quit();
+			if (event.getGuild().equals(guild))
+				quit();
 		}
 	}
 
@@ -213,7 +220,4 @@ public class GuildMusicManager extends ListenerAdapter {
 		return audioPlayerManager;
 	}
 
-	public VoiceChannel getLatestChannel() {
-		return latestChannel;
-	}
 }

@@ -20,7 +20,6 @@ public class PanelManager {
 	private EmbedBuilder builder;
 	private Message message;
 	private TextChannel channel;
-	private boolean recentlchanged = false;
 
 	public PanelManager(GuildMusicManager musicManager) {
 		this.guildMusicManager = musicManager;
@@ -55,8 +54,8 @@ public class PanelManager {
 			this.message.addReaction("🚫").queue();
 			this.message.addReaction("🔄").queue();
 			this.message.addReaction("🔀").queue();
-			this.message.addReaction("🔊").queue();
-			this.message.addReaction("🔉").queue();
+			this.message.addReaction("↩").queue();
+			this.message.addReaction("↪").queue();
 			this.message.addReaction("⭐").queue();
 			this.message.addReaction("❌").queue();
 			startUpdateLoop(5000);
@@ -71,26 +70,25 @@ public class PanelManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		setIdle();
 	}
 
 	public void setIdle() {
-		recentlchanged = true;
 		builder.setColor(Color.RED);
 		builder.setAuthor("Stopped");
 		builder.setTitle(" - Nothing Playing -");
-		builder.setImage("https://i.imgur.com/dTGc0JA.png");
+		builder.setImage("https://media.tomatentum.net/TMBanner.gif");
 	}
 
 	public void setPlaying(AudioTrack track) {
-		recentlchanged = true;
 		builder.setColor(Color.CYAN);
 		builder.setAuthor("Playing");
-		builder.setTitle(track.getInfo().title);
+		builder.setTitle(track.getInfo().title, track.getInfo().uri);
 		builder.setImage("https://img.youtube.com/vi/" + track.getIdentifier() + "/mqdefault.jpg");
 
 	}
 	public void setPaused() {
-		recentlchanged = true;
 		builder.setColor(Color.ORANGE);
 		builder.setAuthor("Paused");
 	}
@@ -108,24 +106,17 @@ public class PanelManager {
 
 		if (!guildMusicManager.getTrackScheduler().isRepeating()) {
 			if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
-				builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "% | " + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()));
+				builder.setFooter(MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()));
 			}else
-				builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "%");
-
+				builder.setFooter(" ");
 		}else
-			builder.setFooter("Volume: " + guildMusicManager.getPlayer().getVolume() + "% | " + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()) + " | Looping Enabled" );
+			builder.setFooter(MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()) + " | Looping Enabled" );
 
 
 		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).embed(builder.build()).complete();
 
 
 
-			new Timer().schedule(new TimerTask() {
-			@Override
-			public void run() {
-				recentlchanged = false;
-			}
-		}, 2000);
 	}
 
 
@@ -133,7 +124,6 @@ public class PanelManager {
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (!recentlchanged) {
 					if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
 						if (message != null) {
 							if (guildMusicManager.getPlayer().isPaused()) {
@@ -148,7 +138,6 @@ public class PanelManager {
 							}
 						}
 					}
-				}
 			}
 		}, delay , delay);
 	}

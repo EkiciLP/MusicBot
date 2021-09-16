@@ -2,6 +2,8 @@ package net.tomatentum.musicbot.music.messagemanagers;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.tomatentum.musicbot.MusicBot;
@@ -51,8 +53,14 @@ public class SearchOperation implements Selectable {
 	}
 
 	@Override
-	public void handleReaction(MessageReaction reaction, int currentpage) {
+	public void handleReaction(MessageReaction reaction, int currentpage, Member member) {
 		List<AudioTrack> contents = pageManager.getPage(currentpage);
+		if (!member.getVoiceState().inVoiceChannel()) {
+			return;
+		}
+
+		musicManager.connect(member.getVoiceState().getChannel());
+
 
 		try {
 			switch (reaction.getReactionEmote().getEmoji()) {

@@ -38,6 +38,7 @@ public class MusicBot {
 		cmdmanager.registerCommand("volume", new VolumeCommand());
 		cmdmanager.registerCommand("search", new SearchCommand());
 		cmdmanager.registerCommand("favorites", new FavoriteCommand());
+		cmdmanager.registerCommand("fav", new FavoriteCommand());
 
 
 
