@@ -1,13 +1,10 @@
 package net.tomatentum.musicbot.music;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
-import com.sedmelluq.discord.lavaplayer.player.event.AudioEventListener;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
-import net.dv8tion.jda.api.entities.Guild;
-import net.tomatentum.musicbot.MusicBot;
+import net.tomatentum.musicbot.TomatenMusic;
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -65,18 +62,15 @@ public class TrackScheduler extends AudioEventAdapter {
 		System.out.println("track " + track.getInfo().title + " ended on " + musicManager.getGuild() + " with reason " + endReason);
 		if (endReason.mayStartNext) {
 			if (repeating) {
-				AudioTrack audioTrack = track.makeClone();
 				player.playTrack(track.makeClone());
-				musicManager.getPanelManager().update();
 
 			} else {
 				if (!queue.isEmpty()) {
 					AudioTrack audioTrack = queue.poll();
 					player.playTrack(audioTrack);
-					musicManager.getPanelManager().update();
-				} else
-					musicManager.getPanelManager().update();
+				}
 			}
+			musicManager.getPanelManager().update();
 		}
 	}
 
@@ -96,7 +90,7 @@ public class TrackScheduler extends AudioEventAdapter {
 			if (count >= 20)
 				break;
 
-			builder.append(count).append(": ").append(track.getInfo().title).append(" [").append(MusicBot.getTimestamp(track.getDuration())).append("]\n");
+			builder.append(count).append(": ").append(track.getInfo().title.equals("Unknown title") ? track.getIdentifier() : track.getInfo().title).append(" [").append(TomatenMusic.getTimestamp(track.getDuration())).append("]\n");
 			count++;
 		}
 		return builder.toString();

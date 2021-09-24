@@ -3,7 +3,7 @@ package net.tomatentum.musicbot.command.commands;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.tomatentum.musicbot.MusicBot;
+import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.utils.GuildCommand;
 import net.tomatentum.musicbot.music.GuildMusicManager;
 
@@ -13,7 +13,7 @@ public class VolumeCommand implements GuildCommand {
 	@Override
 	public void execute(Member member, TextChannel channel, Message message, String[] args) {
 		message.delete().queueAfter(2, TimeUnit.SECONDS);
-		GuildMusicManager musicManager = MusicBot.getInstance().getAudioManager().getMusicManager(channel.getGuild());
+		GuildMusicManager musicManager = TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild());
 		if (channel.getGuild().getAudioManager().isConnected() && channel.getGuild().getAudioManager().getConnectedChannel().getMembers().contains(member)) {
 			int oldvolume = musicManager.getPlayer().getVolume();
 			int newvolume;

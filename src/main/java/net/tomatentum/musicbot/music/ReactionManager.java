@@ -3,7 +3,7 @@ package net.tomatentum.musicbot.music;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.tomatentum.musicbot.MusicBot;
+import net.tomatentum.musicbot.TomatenMusic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -17,8 +17,8 @@ public class ReactionManager extends ListenerAdapter {
 			return;
 		}
 
-		GuildMusicManager musicManager = MusicBot.getInstance().getAudioManager().getMusicManager(event.getGuild());
-		FavoriteSongManager favoriteSongManager = MusicBot.getInstance().getAudioManager().getFavoriteSongManager(event.getMember());
+		GuildMusicManager musicManager = TomatenMusic.getInstance().getAudioManager().getMusicManager(event.getGuild());
+		FavoriteSongManager favoriteSongManager = TomatenMusic.getInstance().getAudioManager().getFavoriteSongManager(event.getMember());
 		if (event.getMessageIdLong() == musicManager.getPanelManager().getMessage().getIdLong()) {
 			event.getReaction().removeReaction(event.getUser()).queue();
 			if (event.getGuild().getAudioManager().isConnected() && event.getGuild().getAudioManager().getConnectedChannel().getMembers().contains(event.getMember())) {

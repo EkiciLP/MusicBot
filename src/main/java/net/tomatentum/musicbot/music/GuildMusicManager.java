@@ -6,19 +6,14 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
-import net.dv8tion.jda.api.audio.hooks.ConnectionStatus;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.tomatentum.musicbot.MusicBot;
+import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.music.messagemanagers.PanelManager;
 import net.tomatentum.musicbot.music.messagemanagers.SearchOperation;
-import net.tomatentum.musicbot.utils.SelectionPanel;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -30,11 +25,11 @@ public class GuildMusicManager extends ListenerAdapter {
 	private AudioPlayerSendHandler audioPlayerSendHandler;
 	private AudioPlayerManager audioPlayerManager;
 	private PanelManager panelManager;
-
+	private Timer quitTimer;
 
 
 	public GuildMusicManager(AudioPlayerManager playerManager, Guild guild) {
-		MusicBot.getInstance().getBot().addEventListener(this);
+		TomatenMusic.getInstance().getBot().addEventListener(this);
 		this.audioPlayerManager = playerManager;
 		this.player = playerManager.createPlayer();
 		this.guild = guild;
@@ -43,16 +38,16 @@ public class GuildMusicManager extends ListenerAdapter {
 		this.panelManager = new PanelManager(this);
 		player.addListener(trackScheduler);
 
-		this.startCleanupLoop(60000);
 		guild.getAudioManager().setSelfDeafened(true);
 	}
 	public void connect(VoiceChannel channel) {
 		guild.getAudioManager().openAudioConnection(channel);
 		guild.getAudioManager().setSendingHandler(audioPlayerSendHandler);
-
+		startCleanupLoop();
 	}
 
 	public void quit() {
+		System.out.println("Quit!");
 		guild.getAudioManager().closeAudioConnection();
 		trackScheduler.clear();
 		trackScheduler.setRepeating(false);
@@ -60,14 +55,11 @@ public class GuildMusicManager extends ListenerAdapter {
 		player.setPaused(false);
 		player.setVolume(100);
 		panelManager.update();
+		cancelCleanupLoop();
 	}
 
 	public void setPaused(boolean paused) {
-		if (paused) {
-			player.setPaused(true);
-		}else {
-			player.setPaused(false);
-		}
+		player.setPaused(paused);
 		panelManager.update();
 	}
 
@@ -96,7 +88,7 @@ public class GuildMusicManager extends ListenerAdapter {
 	}
 
 
-	public void play(String URL) {
+	public void searchPlay(String URL) {
 		String trackURL;
 		if (URL.startsWith("<") && URL.endsWith(">")) {
 			trackURL = URL.substring(1, URL.length()-1);
@@ -144,6 +136,7 @@ public class GuildMusicManager extends ListenerAdapter {
 				panelManager.getChannel().sendMessage("⛔ ``" + e.getMessage() + "``").complete().delete().queueAfter(10, TimeUnit.SECONDS);
 			}
 		});
+
 	}
 
 	public void search(@NotNull String query, TextChannel channel) {
@@ -160,7 +153,7 @@ public class GuildMusicManager extends ListenerAdapter {
 
 			@Override
 			public void playlistLoaded(AudioPlaylist audioPlaylist) {
-				new SearchOperation(audioPlaylist, channel, MusicBot.getInstance().getAudioManager().getMusicManager(guild));
+				new SearchOperation(audioPlaylist, channel, TomatenMusic.getInstance().getAudioManager().getMusicManager(guild));
 
 			}
 
@@ -176,8 +169,14 @@ public class GuildMusicManager extends ListenerAdapter {
 
 
 
-	public void startCleanupLoop(long delay) {
-		new Timer().schedule(new TimerTask() {
+	private void startCleanupLoop() {
+
+		if (quitTimer != null)
+			return;
+
+		quitTimer = new Timer();
+
+		quitTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
 				if (panelManager.getMessage() == null) {
@@ -188,13 +187,22 @@ public class GuildMusicManager extends ListenerAdapter {
 					quit();
 				}
 			}
-		}, 0, delay);
+		}, 10000, 40000);
 	}
 
+	private void cancelCleanupLoop() {
+
+		if (quitTimer == null)
+			return;
+
+		quitTimer.cancel();
+		quitTimer.purge();
+		quitTimer = null;
+	}
 
 	@Override
 	public void onGuildVoiceLeave(@NotNull GuildVoiceLeaveEvent event) {
-		if (event.getMember().getUser().getIdLong() == MusicBot.getInstance().getBot().getSelfUser().getIdLong()) {
+		if (event.getMember().getUser().getIdLong() == TomatenMusic.getInstance().getBot().getSelfUser().getIdLong()) {
 			if (event.getGuild().equals(guild))
 				quit();
 		}

@@ -5,11 +5,10 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.tomatentum.musicbot.MusicBot;
+import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.utils.PageManager;
 import net.tomatentum.musicbot.utils.Selectable;
 import net.tomatentum.musicbot.utils.SelectionPanel;
@@ -29,7 +28,7 @@ public class FavoriteSongManager implements Selectable {
 		this.pageManager = new PageManager<>(new ArrayList<>(), 9);
 		this.user = user;
 		this.musicManager = musicManager;
-		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + user.getMember().getIdLong());
+		List<String> identifiers = TomatenMusic.getInstance().getConfiguration().getStringList("FavoriteSongs." + user.getMember().getIdLong());
 		for (String identifier : identifiers) {
 
 			musicManager.getAudioPlayerManager().loadItem(identifier, new AudioLoadResultHandler() {
@@ -59,15 +58,15 @@ public class FavoriteSongManager implements Selectable {
 	}
 	public void add(AudioTrack track) {
 
-		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + user.getMember().getIdLong());
+		List<String> identifiers = TomatenMusic.getInstance().getConfiguration().getStringList("FavoriteSongs." + user.getMember().getIdLong());
 		pageManager.addItem(track);
 		if (!identifiers.contains(track.getInfo().uri)) {
 			identifiers.add(track.getInfo().uri);
 
 		}
-		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + user.getMember().getIdLong(), identifiers);
+		TomatenMusic.getInstance().getConfiguration().set("FavoriteSongs." + user.getMember().getIdLong(), identifiers);
 		try {
-			MusicBot.getInstance().getConfiguration().save(MusicBot.getInstance().getConfigFile());
+			TomatenMusic.getInstance().getConfiguration().save(TomatenMusic.getInstance().getConfigFile());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -86,13 +85,13 @@ public class FavoriteSongManager implements Selectable {
 			if (uris.contains(track.getInfo().uri))
 				pageManager.removeItem(track);
 
-		List<String> identifiers = MusicBot.getInstance().getConfiguration().getStringList("FavoriteSongs." + user.getMember().getIdLong());
+		List<String> identifiers = TomatenMusic.getInstance().getConfiguration().getStringList("FavoriteSongs." + user.getMember().getIdLong());
 
 		identifiers.remove(track.getInfo().uri);
 
-		MusicBot.getInstance().getConfiguration().set("FavoriteSongs." + user.getMember().getIdLong(), identifiers);
+		TomatenMusic.getInstance().getConfiguration().set("FavoriteSongs." + user.getMember().getIdLong(), identifiers);
 		try {
-			MusicBot.getInstance().getConfiguration().save(MusicBot.getInstance().getConfigFile());
+			TomatenMusic.getInstance().getConfiguration().save(TomatenMusic.getInstance().getConfigFile());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -108,7 +107,7 @@ public class FavoriteSongManager implements Selectable {
 
 
 			for (AudioTrackInfo track : songInfos) {
-				builder.append(count).append(": ").append(track.title).append(" [").append(MusicBot.getTimestamp(track.length)).append("]\n");
+				builder.append(count).append(": ").append(track.title.equals("Unknown title") ? track.identifier : track.title).append(" [").append(TomatenMusic.getTimestamp(track.length)).append("]\n");
 				count++;
 			}
 			return builder.toString();
@@ -183,7 +182,7 @@ public class FavoriteSongManager implements Selectable {
 		}
 
 		public Member getMember() {
-			return MusicBot.getInstance().getBot().getGuildById(guildid).getMemberById(userid);
+			return TomatenMusic.getInstance().getBot().getGuildById(guildid).getMemberById(userid);
 		}
 
 		@Override

@@ -1,14 +1,13 @@
 package net.tomatentum.musicbot.music.messagemanagers;
 
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.tomatentum.musicbot.MusicBot;
+import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.music.GuildMusicManager;
 
-import javax.annotation.Nullable;
 import java.awt.*;
 import java.io.IOException;
 import java.util.Timer;
@@ -25,8 +24,8 @@ public class PanelManager {
 		this.guildMusicManager = musicManager;
 		this.builder = new EmbedBuilder();
 		try {
-			this.channel = musicManager.getGuild().getTextChannelById(MusicBot.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".channelid"));
-			this.message = channel.retrieveMessageById(MusicBot.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".messageid")).complete();
+			this.channel = musicManager.getGuild().getTextChannelById(TomatenMusic.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".channelid"));
+			this.message = channel.retrieveMessageById(TomatenMusic.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".messageid")).complete();
 		}catch (NullPointerException e) {
 			System.out.println("No panel found for " + musicManager.getGuild().getName());
 		}
@@ -63,10 +62,10 @@ public class PanelManager {
 			System.out.println("error");
 		}
 
-		MusicBot.getInstance().getConfiguration().set("Panels." + this.guildMusicManager.getGuild().getIdLong() + ".channelid", channel.getIdLong());
-		MusicBot.getInstance().getConfiguration().set("Panels." + this.guildMusicManager.getGuild().getIdLong() + ".messageid", message.getIdLong());
+		TomatenMusic.getInstance().getConfiguration().set("Panels." + this.guildMusicManager.getGuild().getIdLong() + ".channelid", channel.getIdLong());
+		TomatenMusic.getInstance().getConfiguration().set("Panels." + this.guildMusicManager.getGuild().getIdLong() + ".messageid", message.getIdLong());
 		try {
-			MusicBot.getInstance().getConfiguration().save(MusicBot.getInstance().getConfigFile());
+			TomatenMusic.getInstance().getConfiguration().save(TomatenMusic.getInstance().getConfigFile());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -81,11 +80,24 @@ public class PanelManager {
 		builder.setImage("https://media.tomatentum.net/TMBanner.gif");
 	}
 
+	public void setLoading() {
+		builder.setImage("https://c.tenor.com/DHkIdy0a-UkAAAAC/loading-cat.gif");
+		builder.setAuthor("Loading");
+		builder.setColor(Color.WHITE);
+		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).embed(builder.build()).complete();
+
+	}
+
 	public void setPlaying(AudioTrack track) {
 		builder.setColor(Color.CYAN);
 		builder.setAuthor("Playing");
-		builder.setTitle(track.getInfo().title, track.getInfo().uri);
-		builder.setImage("https://img.youtube.com/vi/" + track.getIdentifier() + "/mqdefault.jpg");
+		builder.setTitle(track.getInfo().title == "Unknown title" ? track.getInfo().identifier : track.getInfo().title, track.getInfo().uri);
+
+		if (track.getSourceManager().getClass().equals(YoutubeAudioSourceManager.class))
+			builder.setImage("https://img.youtube.com/vi/" + track.getIdentifier() + "/mqdefault.jpg");
+		else
+			builder.setImage("https://c.tenor.com/TFxhVKgpg0MAAAAd/sus-bloke-sus.gif");
+
 
 	}
 	public void setPaused() {
@@ -106,11 +118,11 @@ public class PanelManager {
 
 		if (!guildMusicManager.getTrackScheduler().isRepeating()) {
 			if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
-				builder.setFooter(MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()));
+				builder.setFooter(TomatenMusic.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + TomatenMusic.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()));
 			}else
 				builder.setFooter(" ");
 		}else
-			builder.setFooter(MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + MusicBot.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()) + " | Looping Enabled" );
+			builder.setFooter(TomatenMusic.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + TomatenMusic.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()) + " | Looping Enabled" );
 
 
 		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).embed(builder.build()).complete();

@@ -20,7 +20,7 @@ import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.IOException;
 
-public class MusicBot {
+public class TomatenMusic {
 
 	private YamlConfiguration configuration;
 	private File configFile;
@@ -28,10 +28,10 @@ public class MusicBot {
 	private CommandManager cmdmanager;
 	private AudioManager audioManager;
 
-	private static MusicBot Instance;
+	private static TomatenMusic Instance;
 
 
-	public MusicBot() throws LoginException {
+	public TomatenMusic() throws LoginException {
 
 		cmdmanager = new CommandManager();
 		cmdmanager.registerCommand("panel", new PanelCommand());
@@ -65,7 +65,7 @@ public class MusicBot {
 
 	public static void main(String[] args) {
 		try {
-			new MusicBot();
+			new TomatenMusic();
 		} catch (LoginException e) {
 			e.printStackTrace();
 		}
@@ -115,7 +115,7 @@ public class MusicBot {
 		return bot;
 	}
 
-	public static MusicBot getInstance() {
+	public static TomatenMusic getInstance() {
 		return Instance;
 	}
 

@@ -5,12 +5,11 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.tomatentum.musicbot.MusicBot;
+import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.music.GuildMusicManager;
 
 import java.time.OffsetDateTime;
 import java.util.concurrent.TimeUnit;
-import java.util.spi.CurrencyNameProvider;
 
 public class SelectionPanel extends ListenerAdapter {
 	private final GuildMusicManager musicManager;
@@ -25,9 +24,9 @@ public class SelectionPanel extends ListenerAdapter {
 		currentPage = 1;
 		handle.getPage(currentPage);
 
-		MusicBot.getInstance().getBot().addEventListener(this);
+		TomatenMusic.getInstance().getBot().addEventListener(this);
 		this.channel = channel;
-		this.musicManager = MusicBot.getInstance().getAudioManager().getMusicManager(channel.getGuild());
+		this.musicManager = TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild());
 		this.handle = handle;
 		this.builder = new EmbedBuilder();
 

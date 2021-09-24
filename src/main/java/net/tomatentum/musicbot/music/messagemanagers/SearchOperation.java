@@ -2,11 +2,10 @@ package net.tomatentum.musicbot.music.messagemanagers;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.tomatentum.musicbot.MusicBot;
+import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.music.GuildMusicManager;
 import net.tomatentum.musicbot.utils.PageManager;
 import net.tomatentum.musicbot.utils.Selectable;
@@ -34,7 +33,7 @@ public class SearchOperation implements Selectable {
 
 		if (contents != null) {
 			for (AudioTrack track : contents) {
-				builder.append(count).append(": ").append(track.getInfo().title).append(" [").append(MusicBot.getTimestamp(track.getDuration())).append("]\n");
+				builder.append(count).append(": ").append(track.getInfo().title.equals("Unknown title") ? track.getIdentifier() : track.getInfo().title).append(" [").append(TomatenMusic.getTimestamp(track.getDuration())).append("]\n");
 				count++;
 			}
 			return builder.toString();
