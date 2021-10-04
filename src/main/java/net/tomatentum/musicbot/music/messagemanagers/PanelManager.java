@@ -12,6 +12,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class PanelManager {
 
@@ -127,6 +128,14 @@ public class PanelManager {
 
 		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).embed(builder.build()).complete();
 
+
+
+	}
+
+	public void sendMessage(String text) {
+		channel.sendMessage(text).queue(message -> {
+			message.delete().queueAfter(5, TimeUnit.SECONDS);
+		});
 
 
 	}

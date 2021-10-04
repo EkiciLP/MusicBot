@@ -74,6 +74,7 @@ public class TrackScheduler extends AudioEventAdapter {
 		}
 	}
 
+
 	public void shuffle() {
 		List<AudioTrack> audioTracks = new ArrayList<>(queue);
 		Collections.shuffle(audioTracks);

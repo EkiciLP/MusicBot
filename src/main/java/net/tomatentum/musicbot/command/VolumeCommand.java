@@ -1,4 +1,4 @@
-package net.tomatentum.musicbot.command.commands;
+package net.tomatentum.musicbot.command;
 
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;

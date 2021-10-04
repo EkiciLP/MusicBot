@@ -12,6 +12,7 @@ import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.utils.PageManager;
 import net.tomatentum.musicbot.utils.Selectable;
 import net.tomatentum.musicbot.utils.SelectionPanel;
+import net.tomatentum.musicbot.utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -124,7 +125,9 @@ public class FavoriteSongManager implements Selectable {
 			return;
 		}
 
-		musicManager.connect(member.getVoiceState().getChannel());
+
+		Utils.checkSameChannel(member);
+		musicManager.connect(Utils.findSuitableVoiceChannel(member));
 
 		try {
 			switch (reaction.getReactionEmote().getEmoji()) {

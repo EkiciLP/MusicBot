@@ -7,6 +7,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.tomatentum.musicbot.TomatenMusic;
@@ -44,6 +45,8 @@ public class GuildMusicManager extends ListenerAdapter {
 		guild.getAudioManager().openAudioConnection(channel);
 		guild.getAudioManager().setSendingHandler(audioPlayerSendHandler);
 		startCleanupLoop();
+
+
 	}
 
 	public void quit() {
@@ -205,6 +208,19 @@ public class GuildMusicManager extends ListenerAdapter {
 		if (event.getMember().getUser().getIdLong() == TomatenMusic.getInstance().getBot().getSelfUser().getIdLong()) {
 			if (event.getGuild().equals(guild))
 				quit();
+		}
+	}
+
+	@Override
+	public void onGuildVoiceJoin(@NotNull GuildVoiceJoinEvent event) {
+
+		if (event.getMember().getUser().getIdLong() != event.getJDA().getSelfUser().getIdLong())
+			return;
+
+		if (event.getChannelJoined() instanceof StageChannel) {
+			StageChannel stageChannel = (StageChannel) event.getChannelJoined();
+
+			stageChannel.getStageInstance().requestToSpeak().queue();
 		}
 	}
 
