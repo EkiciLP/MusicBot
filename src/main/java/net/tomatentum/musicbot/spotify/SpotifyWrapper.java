@@ -17,8 +17,6 @@ import org.apache.hc.core5.http.ParseException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class SpotifyWrapper {
 
@@ -28,7 +26,8 @@ public class SpotifyWrapper {
 	private String secret = TomatenMusic.getInstance().getConfiguration().getString("Spotify.secret");
 	private String redirectURI = "https://tomatentum.net";
 	private ClientCredentials currentCredentials;
-	private Timer updateTimer;
+	private long lastTokenFetch;
+
 
 	private static SpotifyWrapper instance = new SpotifyWrapper();
 
@@ -38,12 +37,19 @@ public class SpotifyWrapper {
 				.setClientId(clientId)
 				.setRedirectUri(SpotifyHttpManager.makeUri(redirectURI))
 				.build();
-
-		fetchAccessToken();
+		try {
+			currentCredentials = spotifyApi.clientCredentials().build().execute();
+		} catch (IOException | SpotifyWebApiException | ParseException e) {
+			e.printStackTrace();
+		}
 		spotifyApi.setAccessToken(currentCredentials.getAccessToken());
+		lastTokenFetch = System.currentTimeMillis();
 	}
 
 	public void playTrack(String link, GuildMusicManager musicManager) {
+
+		fetchAccessToken();
+
 		String id = link.replace("https://open.spotify.com/track/", "").substring(0, 22);
 		Track track;
 
@@ -81,6 +87,8 @@ public class SpotifyWrapper {
 	}
 
 	public void playPlaylist(String link, GuildMusicManager musicManager) {
+		fetchAccessToken();
+
 		String id = link.replace("https://open.spotify.com/playlist/", "").substring(0, 22);
 		Playlist playlist;
 		List<AudioTrack> tracks = new ArrayList<>();
@@ -132,6 +140,8 @@ public class SpotifyWrapper {
 	}
 
 	public void playAlbum(String link, GuildMusicManager musicManager) {
+		fetchAccessToken();
+
 		String id = link.replace("https://open.spotify.com/album/", "").substring(0, 22);
 		Album playlist;
 		List<AudioTrack> tracks = new ArrayList<>();
@@ -181,26 +191,20 @@ public class SpotifyWrapper {
 		}
 	}
 
-	public ClientCredentials fetchAccessToken() {
-		updateTimer = new Timer();
+	public void fetchAccessToken() {
 
-
+		if (System.currentTimeMillis() - lastTokenFetch <= 60 * 60000)
+			return;
 
 		try {
 			currentCredentials = spotifyApi.clientCredentials().build().execute();
+			spotifyApi.setAccessToken(currentCredentials.getAccessToken());
+			lastTokenFetch = System.currentTimeMillis();
+			System.out.println("[Spotiy] Fetched access token successfully!");
+
 		} catch (IOException | SpotifyWebApiException | ParseException e) {
 			e.printStackTrace();
-			return null;
 		}
-		updateTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				fetchAccessToken();
-				spotifyApi.setAccessToken(currentCredentials.getAccessToken());
-			}
-		}, currentCredentials.getExpiresIn()*1000);
-
-		return currentCredentials;
 	}
 
 

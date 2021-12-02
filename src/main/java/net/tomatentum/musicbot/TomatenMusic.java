@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.tomatentum.musicbot.command.FavoriteCommand;
 import net.tomatentum.musicbot.command.PanelCommand;
 import net.tomatentum.musicbot.command.SearchCommand;
-import net.tomatentum.musicbot.command.VolumeCommand;
 import net.tomatentum.musicbot.utils.CommandManager;
 import net.tomatentum.musicbot.music.AudioManager;
 import net.tomatentum.musicbot.music.MessageReceivePlayHandler;
@@ -35,7 +34,6 @@ public class TomatenMusic {
 
 		cmdmanager = new CommandManager();
 		cmdmanager.registerCommand("panel", new PanelCommand());
-		cmdmanager.registerCommand("volume", new VolumeCommand());
 		cmdmanager.registerCommand("search", new SearchCommand());
 		cmdmanager.registerCommand("favorites", new FavoriteCommand());
 		cmdmanager.registerCommand("fav", new FavoriteCommand());

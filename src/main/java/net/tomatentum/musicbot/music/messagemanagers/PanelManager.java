@@ -10,6 +10,7 @@ import net.tomatentum.musicbot.music.GuildMusicManager;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +34,7 @@ public class PanelManager {
 
 
 		if (message != null) {
-			startUpdateLoop(5000);
+			startUpdateLoop(10000);
 		}
 	}
 
@@ -58,7 +59,7 @@ public class PanelManager {
 			this.message.addReaction("↪").queue();
 			this.message.addReaction("⭐").queue();
 			this.message.addReaction("❌").queue();
-			startUpdateLoop(5000);
+			startUpdateLoop(10000);
 		}catch (Exception e) {
 			System.out.println("error");
 		}
@@ -92,7 +93,7 @@ public class PanelManager {
 	public void setPlaying(AudioTrack track) {
 		builder.setColor(Color.CYAN);
 		builder.setAuthor("Playing");
-		builder.setTitle(track.getInfo().title == "Unknown title" ? track.getInfo().identifier : track.getInfo().title, track.getInfo().uri);
+		builder.setTitle(Objects.equals(track.getInfo().title, "Unknown title") ? track.getInfo().identifier : track.getInfo().title, track.getInfo().uri);
 
 		if (track.getSourceManager().getClass().equals(YoutubeAudioSourceManager.class))
 			builder.setImage("https://img.youtube.com/vi/" + track.getIdentifier() + "/mqdefault.jpg");
@@ -145,20 +146,7 @@ public class PanelManager {
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
-					if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
-						if (message != null) {
-							if (guildMusicManager.getPlayer().isPaused()) {
-								setPaused();
-								update();
-							} else if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
-								setPlaying(guildMusicManager.getPlayer().getPlayingTrack());
-								update();
-							} else {
-								setIdle();
-								update();
-							}
-						}
-					}
+					update();
 			}
 		}, delay , delay);
 	}

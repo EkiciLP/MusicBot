@@ -21,8 +21,6 @@ public class MessageReceivePlayHandler extends ListenerAdapter {
 		}
 
 
-
-
 		GuildMusicManager musicManager = TomatenMusic.getInstance().getAudioManager().getMusicManager(event.getGuild());
 
 
@@ -33,18 +31,16 @@ public class MessageReceivePlayHandler extends ListenerAdapter {
 
 
 		Utils.checkPanelChannel(event.getTextChannel());
+		event.getMessage().delete().queueAfter(1, TimeUnit.SECONDS);
+
 
 		Utils.checkSameChannel(event.getMember());
 		VoiceChannel vc = Utils.findSuitableVoiceChannel(event.getMember());
 
-			event.getMessage().delete().queueAfter(1, TimeUnit.SECONDS);
 
 				musicManager.getPanelManager().setLoading();
 
 				musicManager.connect(vc);
-
-
-
 
 
 				if (event.getMessage().getContentRaw().startsWith("https://open.spotify.com/track")) {
