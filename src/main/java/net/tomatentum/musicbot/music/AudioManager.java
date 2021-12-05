@@ -9,14 +9,16 @@ import com.sedmelluq.discord.lavaplayer.source.twitch.TwitchStreamAudioSourceMan
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.tomatentum.musicbot.TomatenMusic;
-import net.tomatentum.musicbot.favourites.FavoriteSongManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class AudioManager {
+public class AudioManager extends ListenerAdapter {
 	private TomatenMusic main;
 	private HashMap<Long, GuildMusicManager> musicManagerHashMap;
 	private HashMap<FavoriteSongManager.User, FavoriteSongManager> favoriteSongManagerHashMap;
@@ -33,18 +35,20 @@ public class AudioManager {
 		audioPlayerManager.registerSourceManager(new YoutubeAudioSourceManager());
 		audioPlayerManager.registerSourceManager(new HttpAudioSourceManager());
 		audioPlayerManager.registerSourceManager(new TwitchStreamAudioSourceManager());
-		audioPlayerManager.registerSourceManager(new SoundCloudAudioSourceManager.Builder().withAllowSearch(true).build());
+		TomatenMusic.getInstance().getBot().addEventListener(this);
 
-		new Timer().schedule(new TimerTask() {
-			@Override
-			public void run() {
-				for (Guild guild : TomatenMusic.getInstance().getBot().getGuilds()) {
-					for (Member member : guild.getMembers()) {
-						getFavoriteSongManager(member);
-					}
-				}
+
+		for (Guild guild : TomatenMusic.getInstance().getBot().getGuilds()) {
+			for (Member member : guild.getMembers()) {
+				getFavoriteSongManager(member);
 			}
-		}, 5000, 10000);
+		}
+	}
+
+
+	@Override
+	public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
+		getFavoriteSongManager(event.getMember());
 	}
 
 	public GuildMusicManager getMusicManager(Guild guild) {

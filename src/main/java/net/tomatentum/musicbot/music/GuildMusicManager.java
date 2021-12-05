@@ -6,6 +6,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
@@ -26,7 +27,7 @@ public class GuildMusicManager extends ListenerAdapter {
 	private AudioPlayerSendHandler audioPlayerSendHandler;
 	private AudioPlayerManager audioPlayerManager;
 	private PanelManager panelManager;
-	private Timer quitTimer;
+	private Timer currentTimer;
 
 
 	public GuildMusicManager(AudioPlayerManager playerManager, Guild guild) {
@@ -44,12 +45,12 @@ public class GuildMusicManager extends ListenerAdapter {
 	public void connect(VoiceChannel channel) {
 		guild.getAudioManager().openAudioConnection(channel);
 		guild.getAudioManager().setSendingHandler(audioPlayerSendHandler);
-		startCleanupLoop();
 
 
 	}
 
 	public void quit() {
+		currentTimer.cancel();
 		System.out.println("Quit!");
 		guild.getAudioManager().closeAudioConnection();
 		trackScheduler.clear();
@@ -58,7 +59,12 @@ public class GuildMusicManager extends ListenerAdapter {
 		player.setPaused(false);
 		player.setVolume(100);
 		panelManager.update();
-		cancelCleanupLoop();
+	}
+
+	public void quitIfEmpty() {
+		if (guild.getAudioManager().isConnected() && getCurrentChannel().getMembers().size() < 2 || player.getPlayingTrack() == null) {
+			quit();
+		}
 	}
 
 	public void setPaused(boolean paused) {
@@ -89,7 +95,6 @@ public class GuildMusicManager extends ListenerAdapter {
 			playlist.getTracks().forEach(track -> trackScheduler.queue(track.makeClone()));
 			panelManager.update();
 	}
-
 
 	public void searchPlay(String URL) {
 		String trackURL;
@@ -170,44 +175,12 @@ public class GuildMusicManager extends ListenerAdapter {
 		});
 	}
 
-
-
-	private void startCleanupLoop() {
-
-		if (quitTimer != null)
-			return;
-
-		quitTimer = new Timer();
-
-		quitTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				if (panelManager.getMessage() == null) {
-					return;
-				}
-
-				if (guild.getAudioManager().isConnected() && guild.getAudioManager().getConnectedChannel().getMembers().size() < 2 || player.getPlayingTrack() == null) {
-					quit();
-				}
-			}
-		}, 10000, 40000);
-	}
-
-	private void cancelCleanupLoop() {
-
-		if (quitTimer == null)
-			return;
-
-		quitTimer.cancel();
-		quitTimer.purge();
-		quitTimer = null;
-	}
-
 	@Override
 	public void onGuildVoiceLeave(@NotNull GuildVoiceLeaveEvent event) {
 		if (event.getMember().getUser().getIdLong() == TomatenMusic.getInstance().getBot().getSelfUser().getIdLong()) {
-			if (event.getGuild().equals(guild))
+			if (event.getGuild().equals(guild)) {
 				quit();
+			}
 		}
 	}
 
@@ -217,11 +190,26 @@ public class GuildMusicManager extends ListenerAdapter {
 		if (event.getMember().getUser().getIdLong() != event.getJDA().getSelfUser().getIdLong())
 			return;
 
+		currentTimer = new Timer();
+
+		currentTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				quitIfEmpty();
+			}
+		}, 10000, 10000);
+
 		if (event.getChannelJoined() instanceof StageChannel) {
 			StageChannel stageChannel = (StageChannel) event.getChannelJoined();
 
 			stageChannel.getStageInstance().requestToSpeak().queue();
 		}
+	}
+
+	public VoiceChannel getCurrentChannel() {
+		if (guild.getAudioManager().isConnected())
+			return guild.getAudioManager().getConnectedChannel();
+		return null;
 	}
 
 	public AudioPlayer getPlayer() {

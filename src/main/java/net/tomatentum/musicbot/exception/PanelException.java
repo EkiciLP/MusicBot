@@ -7,9 +7,8 @@ import net.tomatentum.musicbot.TomatenMusic;
 public class PanelException extends RuntimeException{
 
 	private Guild guild;
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionId = 0;
 	private String message;
-
 
 	public PanelException(String message, Guild guild) {
 		super("", null, true, false);
@@ -18,6 +17,10 @@ public class PanelException extends RuntimeException{
 
 		sendPanelMessage();
 
+	}
+
+	@Override
+	public void printStackTrace() {
 	}
 
 	public void sendPanelMessage() {
