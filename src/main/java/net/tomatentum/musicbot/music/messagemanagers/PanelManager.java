@@ -4,6 +4,7 @@ import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -47,20 +48,26 @@ public class PanelManager {
 		this.channel = channel;
 		this.builder = new EmbedBuilder();
 
-
+		setIdle();
 		MessageAction action = channel.sendMessageEmbeds(builder.build());
 
 
 		try {
-			action.setActionRows(getActionRows()).queue();
+			message = action.setActionRows(getActionRows()).complete();
 
 			startUpdateLoop(5000);
 		}catch (Exception e) {
 			System.out.println("error");
 		}
+		Guild guild = this.guildMusicManager.getGuild();
+		System.out.println(guild);
+		System.out.println(channel);
+		System.out.println(message);
 
-		TomatenMusic.getInstance().getConfiguration().set("Panels." + this.guildMusicManager.getGuild().getIdLong() + ".channelid", channel.getIdLong());
-		TomatenMusic.getInstance().getConfiguration().set("Panels." + this.guildMusicManager.getGuild().getIdLong() + ".messageid", message.getIdLong());
+		TomatenMusic.getInstance().getConfiguration().set(String.format("panels.%s.channelid", guild.getIdLong()), channel.getIdLong());
+		TomatenMusic.getInstance().getConfiguration().set(String.format("panels.%s.messageid", guild.getIdLong()), message.getIdLong());
+
+
 		try {
 			TomatenMusic.getInstance().getConfiguration().save(TomatenMusic.getInstance().getConfigFile());
 		} catch (IOException e) {
@@ -106,7 +113,7 @@ public class PanelManager {
 		message = message.editMessage(getNextMessage()).complete();
 	}
 
-	private Message getNextMessage() {
+	public Message getNextMessage() {
 		if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
 			guildMusicManager.getPanelManager().setPlaying(guildMusicManager.getPlayer().getPlayingTrack());
 		}else
@@ -145,20 +152,20 @@ public class PanelManager {
 	public ActionRow[] getActionRows() {
 		return new ActionRow[] {
 				ActionRow.of(
-						guildMusicManager.getPlayer().isPaused() ? Button.danger("play", "⏯️") : Button.success("play", "⏯️"),
+						guildMusicManager.getPlayer().isPaused() || guildMusicManager.getPlayer().getPlayingTrack() == null ? Button.danger("play", "⏯️") : Button.success("play", "⏯️"),
 						Button.primary("skip", "⏭️"),
-						Button.danger("stop", "⏹"),
-						Button.danger("clear", "🚫")
+						Button.secondary("stop", "⏹"),
+						Button.secondary("clear", "🚫")
 				),
 				ActionRow.of(
-						guildMusicManager.getTrackScheduler().isRepeating() ? Button.danger("loop", "🔄") : Button.success("loop", "🔄"),
+						!guildMusicManager.getTrackScheduler().isRepeating() ? Button.danger("loop", "🔄") : Button.success("loop", "🔄"),
 						Button.primary("shuffle", "🔀"),
 						Button.secondary("rewind", "↩"),
-						Button.secondary("forward", "↪")
+						Button.primary("forward", "↪")
 				),
 				ActionRow.of(
 						Button.success("fav", "⭐"),
-						Button.danger("unfav", "❌")
+						Button.secondary("unfav", "❌")
 				)
 		};
 	}

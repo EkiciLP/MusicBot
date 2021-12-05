@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.tomatentum.musicbot.command.FavoriteCommand;
 import net.tomatentum.musicbot.command.PanelCommand;
 import net.tomatentum.musicbot.command.SearchCommand;
+import net.tomatentum.musicbot.utils.BroadcastListener;
 import net.tomatentum.musicbot.utils.CommandManager;
 import net.tomatentum.musicbot.music.AudioManager;
 import net.tomatentum.musicbot.music.MessageReceivePlayHandler;
@@ -55,6 +56,7 @@ public class TomatenMusic {
 		builder.addEventListeners(cmdmanager);
 		builder.addEventListeners(new ReactionManager());
 		builder.addEventListeners(new MessageReceivePlayHandler());
+		builder.addEventListeners(new BroadcastListener());
 		this.bot = builder.build();
 
 		this.audioManager = new AudioManager(this);

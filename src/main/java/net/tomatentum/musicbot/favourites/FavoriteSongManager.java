@@ -33,6 +33,8 @@ public class FavoriteSongManager implements Selectable {
 		this.user = user;
 		this.musicManager = musicManager;
 		ConfigurationSection section = TomatenMusic.getInstance().getConfiguration().getConfigurationSection("FavoriteSongs." + user.getMember().getIdLong());
+		if (section == null)
+			return;
 		for (String name : section.getKeys(false)) {
 			add(name, section.getString(name));
 		}
@@ -41,13 +43,14 @@ public class FavoriteSongManager implements Selectable {
 	}
 	public void add(String name, String trackURL) {
 
-		List<String> identifiers = TomatenMusic.getInstance().getConfiguration().getStringList("FavoriteSongs." + user.getMember().getIdLong());
+		ConfigurationSection section = TomatenMusic.getInstance().getConfiguration().getConfigurationSection(String.format("FavoriteSongs.%s", user.getMember().getIdLong()));
+
+		if (section.getValues(false).values().contains(trackURL)) {
+			throw new IllegalArgumentException("Favorites already contain the track");
+		}
 		pageManager.addItem(trackURL);
 		URLNameMap.put(trackURL, name);
-		if (!identifiers.contains(trackURL)) {
-			identifiers.add(trackURL);
-		}
-		TomatenMusic.getInstance().getConfiguration().set("FavoriteSongs." + user.getMember().getIdLong(), identifiers);
+		TomatenMusic.getInstance().getConfiguration().set(String.format("FavoriteSongs.%s.%s", user.getMember().getIdLong(), name), trackURL);
 		try {
 			TomatenMusic.getInstance().getConfiguration().save(TomatenMusic.getInstance().getConfigFile());
 		} catch (IOException e) {
@@ -59,11 +62,20 @@ public class FavoriteSongManager implements Selectable {
 		pageManager.removeItem(trackURL);
 		URLNameMap.remove(trackURL);
 
-		List<String> identifiers = TomatenMusic.getInstance().getConfiguration().getStringList("FavoriteSongs." + user.getMember().getIdLong());
+		ConfigurationSection section = TomatenMusic.getInstance().getConfiguration().getConfigurationSection(String.format("FavoriteSongs.%s", user.getMember().getIdLong()));
 
-		identifiers.remove(trackURL);
+		Map<String, Object> values = section.getValues(false);
 
-		TomatenMusic.getInstance().getConfiguration().set("FavoriteSongs." + user.getMember().getIdLong(), identifiers);
+		for (Map.Entry<String, Object> entry : values.entrySet()) {
+			if (entry.getValue().equals(trackURL)) {
+				values.remove(entry.getKey());
+				return;
+			}
+
+		}
+
+		TomatenMusic.getInstance().getConfiguration().set(String.format("FavoriteSongs.%s", user.getMember().getIdLong()), section);
+
 		try {
 			TomatenMusic.getInstance().getConfiguration().save(TomatenMusic.getInstance().getConfigFile());
 		} catch (IOException e) {
@@ -73,12 +85,13 @@ public class FavoriteSongManager implements Selectable {
 	public String getPage(int page) {
 		int count = 1;
 		StringBuilder builder = new StringBuilder();
-		List<String> trackURLs = new ArrayList<>();
+		ConfigurationSection section = TomatenMusic.getInstance().getConfiguration().getConfigurationSection(String.format("FavoriteSongs.%s", user.getMember().getIdLong()));
+		Collection<Object> trackURLs = section.getValues(false).values();
 
 
 
-			for (String URL : trackURLs) {
-				builder.append(count).append(": ").append(URLNameMap.get(URL).equals("Unknown title") ? trackURLs : URLNameMap.get(URL));
+		for (Object URL : trackURLs) {
+				builder.append(count).append(": ").append(URLNameMap.get((String) URL).equals("Unknown title") ? (String) URL : URLNameMap.get((String) URL));
 				count++;
 			}
 			return builder.toString();

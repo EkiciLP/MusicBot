@@ -25,6 +25,8 @@ public class ReactionManager extends ListenerAdapter {
 			if (event.getGuild().getAudioManager().isConnected() && event.getGuild().getAudioManager().getConnectedChannel().getMembers().contains(event.getMember())) {
 				event.deferEdit().queue();
 				AudioTrack currenttrack = musicManager.getPlayer().getPlayingTrack();
+				event.getHook().setEphemeral(true);
+
 				switch (event.getComponentId()) {
 					case "play":
 							if (musicManager.getPlayer().isPaused() && currenttrack != null) {
@@ -38,7 +40,6 @@ public class ReactionManager extends ListenerAdapter {
 								musicManager.getTrackScheduler().nextTrack();
 							} catch (IllegalArgumentException e) {
 								event.getHook()
-										.setEphemeral(true)
 										.sendMessage("⛔ Queue is Empty!")
 										.queue();
 							}
@@ -67,24 +68,32 @@ public class ReactionManager extends ListenerAdapter {
 						musicManager.rewind(30);
 						break;
 					case "fav":
+						try {
 							favoriteSongManager.add(currenttrack.getInfo().uri, currenttrack.getInfo().uri);
 							event.getHook()
 									.sendMessage(
 											"***" + musicManager.getPlayer().getPlayingTrack().getInfo().title + "***" +
-											"\nAdded to your favourites!"
+													"\nAdded to your favourites!"
 									).queue();
+						}catch (IllegalArgumentException exception) {
+							event.getHook().sendMessage(exception.getMessage()).queue();
+						}
 						break;
 					case "unfav":
+						try {
 						favoriteSongManager.remove(currenttrack.getInfo().uri);
-
 						event.getHook()
 								.sendMessage(
 										"***" + musicManager.getPlayer().getPlayingTrack().getInfo().title + "***" +
 												"\nRemoved from your favourites!"
 								).queue();
+						}catch (IllegalArgumentException exception) {
+							event.getHook().sendMessage(exception.getMessage()).queue();
+						}
 						break;
-
 				}
+				event.getHook().editOriginal(musicManager.getPanelManager().getNextMessage()).queue();
+
 			}else
 				event.reply("You cant do that!").setEphemeral(true).queue();
 		}

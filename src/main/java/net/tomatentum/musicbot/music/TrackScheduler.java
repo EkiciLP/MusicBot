@@ -20,6 +20,7 @@ public class TrackScheduler extends AudioEventAdapter {
 		this.musicManager = musicManager;
 		this.player = player;
 		this.queue = new LinkedBlockingQueue<>();
+		this.repeating = false;
 	}
 
 	public void queue(AudioTrack audioTrack) {
