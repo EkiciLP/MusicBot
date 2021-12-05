@@ -10,6 +10,7 @@ import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.tomatentum.musicbot.TomatenMusic;
+import net.tomatentum.musicbot.favourites.FavoriteSongManager;
 
 import java.util.HashMap;
 import java.util.Timer;

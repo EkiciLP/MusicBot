@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.tomatentum.musicbot.TomatenMusic;
-import net.tomatentum.musicbot.music.FavoriteSongManager;
+import net.tomatentum.musicbot.favourites.FavoriteSongManager;
 import net.tomatentum.musicbot.utils.GuildCommand;
 import net.tomatentum.musicbot.utils.Utils;
 

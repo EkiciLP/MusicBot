@@ -1,9 +1,11 @@
 package net.tomatentum.musicbot.music;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.tomatentum.musicbot.TomatenMusic;
+import net.tomatentum.musicbot.favourites.FavoriteSongManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -11,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class ReactionManager extends ListenerAdapter {
 
 	@Override
-	public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
+	public void onButtonClick(@NotNull ButtonClickEvent event) {
 
 		if (event.getUser().isBot()) {
 			return;
@@ -19,62 +21,73 @@ public class ReactionManager extends ListenerAdapter {
 
 		GuildMusicManager musicManager = TomatenMusic.getInstance().getAudioManager().getMusicManager(event.getGuild());
 		FavoriteSongManager favoriteSongManager = TomatenMusic.getInstance().getAudioManager().getFavoriteSongManager(event.getMember());
-		if (event.getMessageIdLong() == musicManager.getPanelManager().getMessage().getIdLong()) {
-			event.getReaction().removeReaction(event.getUser()).queue();
-			if (event.getGuild().getAudioManager().isConnected() && event.getGuild().getAudioManager().getConnectedChannel().getMembers().contains(event.getMember())) {
 
-				switch (event.getReaction().getReactionEmote().getEmoji()) {
-					case "⏯":
-							if (musicManager.getPlayer().isPaused() && musicManager.getPlayer().getPlayingTrack() != null) {
+		if (event.getMessageIdLong() == musicManager.getPanelManager().getMessage().getIdLong()) {
+			if (event.getGuild().getAudioManager().isConnected() && event.getGuild().getAudioManager().getConnectedChannel().getMembers().contains(event.getMember())) {
+				event.deferEdit().queue();
+				AudioTrack currenttrack = musicManager.getPlayer().getPlayingTrack();
+				switch (event.getComponentId()) {
+					case "play":
+							if (musicManager.getPlayer().isPaused() && currenttrack != null) {
 								musicManager.setPaused(false);
 							} else {
 								musicManager.setPaused(true);
 							}
 						break;
-					case "⏭":
+					case "skip":
 							try {
 								musicManager.getTrackScheduler().nextTrack();
 							} catch (IllegalArgumentException e) {
-								event.getChannel().sendMessage("⛔ Queue is Empty!").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+								event.getHook()
+										.setEphemeral(true)
+										.sendMessage("⛔ Queue is Empty!")
+										.queue();
 							}
 						break;
-					case "⏹":
+					case "stop":
 							musicManager.quit();
 							musicManager.getPanelManager().setIdle();
 						break;
-					case "🚫":
+					case "clear":
 							musicManager.getTrackScheduler().clear();
 						break;
-					case "🔄":
-							if (musicManager.getTrackScheduler().isRepeating()) {
-								musicManager.getTrackScheduler().setRepeating(false);
-							} else
-								musicManager.getTrackScheduler().setRepeating(true);
+					case "loop":
+						musicManager.getTrackScheduler().setRepeating(!musicManager.getTrackScheduler().isRepeating());
 
 						break;
-					case "🔀":
+					case "shuffle":
 							musicManager.getTrackScheduler().shuffle();
-							event.getChannel().sendMessage("🔀 Queue Shuffled!").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+							event.getHook()
+									.sendMessage("🔀 Queue Shuffled!")
+									.queue();
 						break;
-					case "↪":
-						AudioTrack currenttrack = musicManager.getPlayer().getPlayingTrack();
-
+					case "forward":
 						musicManager.skip(30);
-						musicManager.getPanelManager().update();
 						break;
-					case "↩":
+					case "rewind":
 						musicManager.rewind(30);
-						musicManager.getPanelManager().update();
 						break;
-					case "⭐":
-							favoriteSongManager.add(musicManager.getPlayer().getPlayingTrack());
+					case "fav":
+							favoriteSongManager.add(currenttrack.getInfo().uri, currenttrack.getInfo().uri);
+							event.getHook()
+									.sendMessage(
+											"***" + musicManager.getPlayer().getPlayingTrack().getInfo().title + "***" +
+											"\nAdded to your favourites!"
+									).queue();
 						break;
-					case "❌":
-						favoriteSongManager.remove(musicManager.getPlayer().getPlayingTrack());
+					case "unfav":
+						favoriteSongManager.remove(currenttrack.getInfo().uri);
+
+						event.getHook()
+								.sendMessage(
+										"***" + musicManager.getPlayer().getPlayingTrack().getInfo().title + "***" +
+												"\nRemoved from your favourites!"
+								).queue();
 						break;
 
 				}
-			}
+			}else
+				event.reply("You cant do that!").setEphemeral(true).queue();
 		}
 	}
 }

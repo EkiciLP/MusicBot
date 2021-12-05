@@ -3,8 +3,12 @@ package net.tomatentum.musicbot.music.messagemanagers;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.music.GuildMusicManager;
 
@@ -33,7 +37,7 @@ public class PanelManager {
 
 
 		if (message != null) {
-			startUpdateLoop(5000);
+			startUpdateLoop(6000);
 		}
 	}
 
@@ -44,20 +48,12 @@ public class PanelManager {
 		this.builder = new EmbedBuilder();
 
 
-		this.message = this.channel.sendMessage("Building...").complete();
+		MessageAction action = channel.sendMessageEmbeds(builder.build());
 
 
 		try {
-			this.message.addReaction("⏯").queue();
-			this.message.addReaction("⏭").queue();
-			this.message.addReaction("⏹").queue();
-			this.message.addReaction("🚫").queue();
-			this.message.addReaction("🔄").queue();
-			this.message.addReaction("🔀").queue();
-			this.message.addReaction("↩").queue();
-			this.message.addReaction("↪").queue();
-			this.message.addReaction("⭐").queue();
-			this.message.addReaction("❌").queue();
+			action.setActionRows(getActionRows()).queue();
+
 			startUpdateLoop(5000);
 		}catch (Exception e) {
 			System.out.println("error");
@@ -107,7 +103,10 @@ public class PanelManager {
 	}
 
 	public void update() {
+		message = message.editMessage(getNextMessage()).complete();
+	}
 
+	private Message getNextMessage() {
 		if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
 			guildMusicManager.getPanelManager().setPlaying(guildMusicManager.getPlayer().getPlayingTrack());
 		}else
@@ -125,11 +124,14 @@ public class PanelManager {
 		}else
 			builder.setFooter(TomatenMusic.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getPosition()) + "/" + TomatenMusic.getTimestamp(guildMusicManager.getPlayer().getPlayingTrack().getDuration()) + " | Looping Enabled" );
 
+		MessageBuilder builder = new MessageBuilder();
 
-		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).embed(builder.build()).complete();
+		builder.setActionRows(
+				getActionRows())
+				.setContent("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString())
+				.setEmbeds(this.builder.build());
 
-
-
+		return builder.build();
 	}
 
 	public void sendMessage(String text) {
@@ -138,6 +140,27 @@ public class PanelManager {
 		});
 
 
+	}
+
+	public ActionRow[] getActionRows() {
+		return new ActionRow[] {
+				ActionRow.of(
+						guildMusicManager.getPlayer().isPaused() ? Button.danger("play", "⏯️") : Button.success("play", "⏯️"),
+						Button.primary("skip", "⏭️"),
+						Button.danger("stop", "⏹"),
+						Button.danger("clear", "🚫")
+				),
+				ActionRow.of(
+						guildMusicManager.getTrackScheduler().isRepeating() ? Button.danger("loop", "🔄") : Button.success("loop", "🔄"),
+						Button.primary("shuffle", "🔀"),
+						Button.secondary("rewind", "↩"),
+						Button.secondary("forward", "↪")
+				),
+				ActionRow.of(
+						Button.success("fav", "⭐"),
+						Button.danger("unfav", "❌")
+				)
+		};
 	}
 
 

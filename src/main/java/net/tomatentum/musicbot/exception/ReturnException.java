@@ -5,8 +5,11 @@ import java.io.PrintWriter;
 
 public class ReturnException extends RuntimeException {
 
+	private static final long serialVersionUID = 1L;
+
 	public ReturnException() {
-		super(" ");
+		super("", null, true, false);
+
 	}
 
 	@Override

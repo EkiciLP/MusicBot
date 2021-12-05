@@ -1,12 +1,9 @@
 package net.tomatentum.musicbot.utils;
 
-import javafx.scene.layout.Pane;
 import net.dv8tion.jda.api.entities.*;
 import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.exception.PanelException;
 import net.tomatentum.musicbot.exception.ReturnException;
-
-import java.util.concurrent.TimeUnit;
 
 public class Utils {
 

@@ -3,8 +3,11 @@ package net.tomatentum.musicbot.utils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.Button;
 import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.music.GuildMusicManager;
 
@@ -46,7 +49,7 @@ public class SelectionPanel extends ListenerAdapter {
 
 		if (handle.getTotalPages() == 0) {
 			builder.setDescription("Favorites Empty");
-			message = message.editMessage(builder.build()).complete();
+			message = message.editMessageEmbeds(builder.build()).complete();
 			return;
 		}
 		currentPage = page;
@@ -55,100 +58,149 @@ public class SelectionPanel extends ListenerAdapter {
 		builder.setFooter("- Select an entry by reacting with the correct number | Page: " + currentPage + " / " + handle.getTotalPages());
 
 
-		message = message.editMessage(builder.build()).complete();
-
-		if (handle.getTotalPages() == 1) {
-
-		}else if (page == 1) {
-			message.addReaction("⏩").queue();
-		}else if (page == handle.getTotalPages()) {
-			message.addReaction("⏪").queue();
-		}else{
-			message.addReaction("⏩").queue();
-			message.addReaction("⏪").queue();
-		}
-
-
 		switch (handle.getPageSize(currentPage)) {
 			case 1:
-				message.addReaction("1️⃣").queue();
+				message.editMessageEmbeds(builder.build()).setActionRows(ActionRow.of(
+						Button.primary("1", "1️⃣")
+				),
+						ActionRow.of(
+								Button.primary("next", "⏩").withDisabled(handle.getTotalPages() > currentPage),
+								Button.primary("previous", "⏪").withDisabled(currentPage-1 != 0)
+						)
+						).queue();
 				break;
 			case 2:
-				message.addReaction("1️⃣").queue();
-				message.addReaction("2️⃣").queue();
+				message.editMessageEmbeds(builder.build()).setActionRows(ActionRow.of(
+						Button.primary("1", "1️⃣"),
+						Button.primary("1", "2️⃣")
+				),
+						ActionRow.of(
+								Button.primary("next", "⏩").withDisabled(handle.getTotalPages() > currentPage),
+								Button.primary("previous", "⏪").withDisabled(currentPage-1 != 0)
+						)
+				).queue();
 				break;
 			case 3:
-				message.addReaction("1️⃣").queue();
-				message.addReaction("2️⃣").queue();
-				message.addReaction("3️⃣").queue();
+				message.editMessageEmbeds(builder.build()).setActionRows(ActionRow.of(
+						Button.primary("1", "1️⃣"),
+						Button.primary("1", "2️⃣"),
+						Button.primary("1", "3️⃣")
+				),
+						ActionRow.of(
+								Button.primary("next", "⏩").withDisabled(handle.getTotalPages() > currentPage),
+								Button.primary("previous", "⏪").withDisabled(currentPage-1 != 0)
+						)
+				).queue();
 				break;
 			case 4:
-				message.addReaction("1️⃣").queue();
-				message.addReaction("2️⃣").queue();
-				message.addReaction("3️⃣").queue();
-				message.addReaction("4️⃣").queue();
+				message.editMessageEmbeds(builder.build()).setActionRows(ActionRow.of(
+						Button.primary("1", "1️⃣"),
+						Button.primary("1", "2️⃣"),
+						Button.primary("1", "3️⃣"),
+						Button.primary("1", "4️⃣")
+				),
+						ActionRow.of(
+								Button.primary("next", "⏩").withDisabled(handle.getTotalPages() > currentPage),
+								Button.primary("previous", "⏪").withDisabled(currentPage-1 != 0)
+						)
+				).queue();
 				break;
 			case 5:
-				message.addReaction("1️⃣").queue();
-				message.addReaction("2️⃣").queue();
-				message.addReaction("3️⃣").queue();
-				message.addReaction("4️⃣").queue();
-				message.addReaction("5️⃣").queue();
+				message.editMessageEmbeds(builder.build()).setActionRows(ActionRow.of(
+						Button.primary("1", "1️⃣"),
+						Button.primary("1", "2️⃣"),
+						Button.primary("1", "3️⃣"),
+						Button.primary("1", "4️⃣"),
+						Button.primary("1", "5️⃣")
+				),
+						ActionRow.of(
+								Button.primary("next", "⏩").withDisabled(handle.getTotalPages() > currentPage),
+								Button.primary("previous", "⏪").withDisabled(currentPage-1 != 0)
+						)
+				).queue();
 				break;
 			case 6:
-				message.addReaction("1️⃣").queue();
-				message.addReaction("2️⃣").queue();
-				message.addReaction("3️⃣").queue();
-				message.addReaction("4️⃣").queue();
-				message.addReaction("5️⃣").queue();
-				message.addReaction("6️⃣").queue();
+				message.editMessageEmbeds(builder.build()).setActionRows(ActionRow.of(
+						Button.primary("1", "1️⃣"),
+						Button.primary("1", "2️⃣"),
+						Button.primary("1", "3️⃣"),
+						Button.primary("1", "4️⃣"),
+						Button.primary("1", "5️⃣"),
+						Button.primary("1", "6️⃣")
+				),
+						ActionRow.of(
+								Button.primary("next", "⏩").withDisabled(handle.getTotalPages() > currentPage),
+								Button.primary("previous", "⏪").withDisabled(currentPage-1 != 0)
+						)
+				).queue();
 				break;
 			case 7:
-				message.addReaction("1️⃣").queue();
-				message.addReaction("2️⃣").queue();
-				message.addReaction("3️⃣").queue();
-				message.addReaction("4️⃣").queue();
-				message.addReaction("5️⃣").queue();
-				message.addReaction("6️⃣").queue();
-				message.addReaction("7️⃣").queue();
+				message.editMessageEmbeds(builder.build()).setActionRows(ActionRow.of(
+						Button.primary("1", "1️⃣"),
+						Button.primary("1", "2️⃣"),
+						Button.primary("1", "3️⃣"),
+						Button.primary("1", "4️⃣"),
+						Button.primary("1", "5️⃣"),
+						Button.primary("1", "6️⃣"),
+						Button.primary("1", "7️⃣")
+				),
+						ActionRow.of(
+								Button.primary("next", "⏩").withDisabled(handle.getTotalPages() > currentPage),
+								Button.primary("previous", "⏪").withDisabled(currentPage-1 != 0)
+						)
+				).queue();
 				break;
 			case 8:
-				message.addReaction("1️⃣").queue();
-				message.addReaction("2️⃣").queue();
-				message.addReaction("3️⃣").queue();
-				message.addReaction("4️⃣").queue();
-				message.addReaction("5️⃣").queue();
-				message.addReaction("6️⃣").queue();
-				message.addReaction("7️⃣").queue();
-				message.addReaction("8️⃣").queue();
+				message.editMessageEmbeds(builder.build()).setActionRows(ActionRow.of(
+						Button.primary("1", "1️⃣"),
+						Button.primary("1", "2️⃣"),
+						Button.primary("1", "3️⃣"),
+						Button.primary("1", "4️⃣"),
+						Button.primary("1", "5️⃣"),
+						Button.primary("1", "6️⃣"),
+						Button.primary("1", "7️⃣"),
+						Button.primary("1", "8️⃣")
+						),
+						ActionRow.of(
+								Button.primary("next", "⏩").withDisabled(handle.getTotalPages() > currentPage),
+								Button.primary("previous", "⏪").withDisabled(currentPage-1 != 0)
+						)
+				).queue();
 				break;
 			default:
-				message.addReaction("1️⃣").queue();
-				message.addReaction("2️⃣").queue();
-				message.addReaction("3️⃣").queue();
-				message.addReaction("4️⃣").queue();
-				message.addReaction("5️⃣").queue();
-				message.addReaction("6️⃣").queue();
-				message.addReaction("7️⃣").queue();
-				message.addReaction("8️⃣").queue();
-				message.addReaction("9️⃣").queue();
+
+				message.editMessageEmbeds(builder.build()).setActionRows(ActionRow.of(
+						Button.primary("1", "1️⃣"),
+						Button.primary("1", "2️⃣"),
+						Button.primary("1", "3️⃣"),
+						Button.primary("1", "4️⃣"),
+						Button.primary("1", "5️⃣"),
+						Button.primary("1", "6️⃣"),
+						Button.primary("1", "7️⃣"),
+						Button.primary("1", "8️⃣"),
+						Button.primary("1", "9️⃣")
+				),
+						ActionRow.of(
+								Button.primary("next", "⏩").withDisabled(handle.getTotalPages() > currentPage),
+								Button.primary("previous", "⏪").withDisabled(currentPage-1 != 0)
+						)
+				).queue();
 				break;
 		}
 	}
 
 	@Override
-	public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event) {
+	public void onButtonClick(ButtonClickEvent event) {
 		if (event.getUser().isBot()) {
 			return;
 		}
 			if (event.getMessageIdLong() == message.getIdLong()) {
-				event.getReaction().removeReaction(event.getUser()).queue();
-				handle.handleReaction(event.getReaction(), currentPage, event.getMember());
-				switch (event.getReaction().getReactionEmote().getEmoji()) {
-					case "⏪":
+				handle.handleReaction(Integer.parseInt(event.getComponentId()), currentPage, event.getMember(), event);
+				switch (event.getComponentId()) {
+					case "previous":
 						showPage(currentPage-1);
 						break;
-					case "⏩":
+					case "next":
 						showPage(currentPage+1);
 						break;
 				}
