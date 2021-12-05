@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.tomatentum.musicbot.TomatenMusic;
+import net.tomatentum.musicbot.favourites.FavoriteSongManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
