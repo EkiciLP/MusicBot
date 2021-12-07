@@ -1,9 +1,11 @@
 package net.tomatentum.musicbot.music;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.tomatentum.musicbot.TomatenMusic;
+import net.tomatentum.musicbot.favourites.Database;
 import net.tomatentum.musicbot.favourites.FavoriteSongManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,16 +70,17 @@ public class ReactionManager extends ListenerAdapter {
 						musicManager.rewind(30);
 						break;
 					case "fav":
-						try {
-							favoriteSongManager.add(currenttrack.getInfo().uri, currenttrack.getInfo().uri);
+						AudioTrackInfo trackInfo = currenttrack.getInfo();
+						if (favoriteSongManager.add(trackInfo)) {
+
 							event.getHook()
 									.sendMessage(
 											"***" + musicManager.getPlayer().getPlayingTrack().getInfo().title + "***" +
 													"\nAdded to your favourites!"
 									).queue();
-						}catch (IllegalArgumentException exception) {
-							event.getHook().sendMessage(exception.getMessage()).queue();
-						}
+						}else
+							event.getHook().sendMessage("Favourites already contain track!").queue();
+
 						break;
 					case "unfav":
 						try {

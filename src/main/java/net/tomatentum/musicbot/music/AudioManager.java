@@ -12,9 +12,11 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.tomatentum.musicbot.TomatenMusic;
+import net.tomatentum.musicbot.favourites.Database;
 import net.tomatentum.musicbot.favourites.FavoriteSongManager;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.crypto.Data;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -23,6 +25,7 @@ public class AudioManager extends ListenerAdapter {
 	private TomatenMusic main;
 	private HashMap<Long, GuildMusicManager> musicManagerHashMap;
 	private HashMap<FavoriteSongManager.User, FavoriteSongManager> favoriteSongManagerHashMap;
+	private Database database;
 
 	private AudioPlayerManager audioPlayerManager;
 
@@ -30,6 +33,7 @@ public class AudioManager extends ListenerAdapter {
 		this.main = main;
 		musicManagerHashMap = new HashMap<>();
 		favoriteSongManagerHashMap = new HashMap<>();
+		this.database = new Database();
 
 		audioPlayerManager = new DefaultAudioPlayerManager();
 		AudioSourceManagers.registerRemoteSources(audioPlayerManager);
@@ -61,7 +65,7 @@ public class AudioManager extends ListenerAdapter {
 	}
 	public FavoriteSongManager getFavoriteSongManager(Member member) {
 		if (!favoriteSongManagerHashMap.containsKey(new FavoriteSongManager.User(member))) {
-			favoriteSongManagerHashMap.put(new FavoriteSongManager.User(member), new FavoriteSongManager(new FavoriteSongManager.User(member), getMusicManager(member.getGuild())));
+			favoriteSongManagerHashMap.put(new FavoriteSongManager.User(member), new FavoriteSongManager(new FavoriteSongManager.User(member), getMusicManager(member.getGuild()), database));
 		}
 		return favoriteSongManagerHashMap.get(new FavoriteSongManager.User(member));
 

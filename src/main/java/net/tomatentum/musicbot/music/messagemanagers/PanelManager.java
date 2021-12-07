@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
@@ -30,10 +31,10 @@ public class PanelManager {
 		this.guildMusicManager = musicManager;
 		this.builder = new EmbedBuilder();
 		try {
-			this.channel = musicManager.getGuild().getTextChannelById(TomatenMusic.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".channelid"));
-			this.message = channel.retrieveMessageById(TomatenMusic.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".messageid")).complete();
-		}catch (NullPointerException e) {
-			System.out.println("No panel found for " + musicManager.getGuild().getName());
+			this.channel = musicManager.getGuild().getTextChannelById(TomatenMusic.getInstance().getConfiguration().getLong("panels." + musicManager.getGuild().getIdLong() + ".channelid"));
+			this.message = channel.retrieveMessageById(TomatenMusic.getInstance().getConfiguration().getLong("panels." + musicManager.getGuild().getIdLong() + ".messageid")).complete();
+		}catch (NullPointerException | ErrorResponseException e) {
+			System.out.println(("No panel found for " + musicManager.getGuild().getName()));
 		}
 
 
@@ -55,7 +56,8 @@ public class PanelManager {
 		try {
 			message = action.setActionRows(getActionRows()).complete();
 
-			startUpdateLoop(5000);
+			startUpdateLoop(6000);
+
 		}catch (Exception e) {
 			System.out.println("error");
 		}
@@ -133,6 +135,8 @@ public class PanelManager {
 
 		MessageBuilder builder = new MessageBuilder();
 
+		builder.setContent(guildMusicManager.getTrackScheduler().getQueueString());
+
 		builder.setActionRows(
 				getActionRows())
 				.setContent("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString())
@@ -152,19 +156,19 @@ public class PanelManager {
 	public ActionRow[] getActionRows() {
 		return new ActionRow[] {
 				ActionRow.of(
-						guildMusicManager.getPlayer().isPaused() || guildMusicManager.getPlayer().getPlayingTrack() == null ? Button.danger("play", "⏯️") : Button.success("play", "⏯️"),
-						Button.primary("skip", "⏭️"),
+						guildMusicManager.getPlayer().isPaused() || guildMusicManager.getPlayer().getPlayingTrack() == null ? Button.danger("play", "⏯") : Button.success("play", "⏯"),
+						Button.secondary("skip", "⏭"),
 						Button.secondary("stop", "⏹"),
 						Button.secondary("clear", "🚫")
 				),
 				ActionRow.of(
 						!guildMusicManager.getTrackScheduler().isRepeating() ? Button.danger("loop", "🔄") : Button.success("loop", "🔄"),
-						Button.primary("shuffle", "🔀"),
+						Button.secondary("shuffle", "🔀"),
 						Button.secondary("rewind", "↩"),
-						Button.primary("forward", "↪")
+						Button.secondary("forward", "↪")
 				),
 				ActionRow.of(
-						Button.success("fav", "⭐"),
+						Button.secondary("fav", "⭐"),
 						Button.secondary("unfav", "❌")
 				)
 		};

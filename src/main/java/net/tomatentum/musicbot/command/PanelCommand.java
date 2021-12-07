@@ -15,8 +15,8 @@ public class PanelCommand implements GuildCommand {
 		if (member.hasPermission(Permission.MANAGE_CHANNEL)) {
 			GuildMusicManager musicManager = TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild());
 			try {
-				TextChannel oldchannel = TomatenMusic.getInstance().getBot().getTextChannelById(TomatenMusic.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".channelid"));
-				Message oldmessage = oldchannel.retrieveMessageById(TomatenMusic.getInstance().getConfiguration().getLong("Panels." + musicManager.getGuild().getIdLong() + ".messageid")).complete();
+				TextChannel oldchannel = TomatenMusic.getInstance().getBot().getTextChannelById(TomatenMusic.getInstance().getConfiguration().getLong("panels." + musicManager.getGuild().getIdLong() + ".channelid"));
+				Message oldmessage = oldchannel.retrieveMessageById(TomatenMusic.getInstance().getConfiguration().getLong("panels." + musicManager.getGuild().getIdLong() + ".messageid")).complete();
 				oldmessage.delete().queue();
 			}catch (Exception e) {
 				System.out.println("No Previous Panel Found for " + channel.getGuild().getName());

@@ -3,6 +3,7 @@ package net.tomatentum.musicbot;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
@@ -56,10 +57,11 @@ public class TomatenMusic {
 		builder.addEventListeners(cmdmanager);
 		builder.addEventListeners(new ReactionManager());
 		builder.addEventListeners(new MessageReceivePlayHandler());
-		builder.addEventListeners(new BroadcastListener());
+		builder.setActivity(Activity.watching("New Patch getting released!"));
 		this.bot = builder.build();
 
 		this.audioManager = new AudioManager(this);
+		bot.addEventListener(new BroadcastListener());
 
 	}
 

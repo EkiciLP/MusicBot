@@ -17,6 +17,7 @@ public class FavoriteCommand implements GuildCommand {
 
 		Utils.checkSameChannel(member);
 
+
 		TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild()).connect(Utils.findSuitableVoiceChannel(member));
 
 		FavoriteSongManager favoriteSongManager = TomatenMusic.getInstance().getAudioManager().getFavoriteSongManager(member);

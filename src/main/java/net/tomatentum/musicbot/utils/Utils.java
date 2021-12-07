@@ -32,7 +32,8 @@ public class Utils {
 	}
 
 	public static void checkPanelChannel(TextChannel channel) {
-		if (channel.getIdLong() != TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild()).getPanelManager().getChannel().getIdLong()) {
+		if (TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild()).getPanelManager().getChannel() == null ||
+		channel.getIdLong() != TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild()).getPanelManager().getChannel().getIdLong()) {
 			throw new ReturnException();
 		}
 	}
@@ -57,7 +58,7 @@ public class Utils {
 			TextChannel channel = musicManager.getGuild().getDefaultChannel();
 
 			if (channel != null) {
-				channel.sendMessage("Hey " + owner.getAsMention() + ", I've got a new update! View the Patch Notes here:").setEmbeds().queue();
+				channel.sendMessage("Hey @here, I've got a new update! View the Patch Notes here:").setEmbeds(builder.build()).queue();
 			}
 		}
 	}
