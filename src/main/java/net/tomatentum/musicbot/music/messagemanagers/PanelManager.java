@@ -90,7 +90,7 @@ public class PanelManager {
 		builder.setImage("https://c.tenor.com/DHkIdy0a-UkAAAAC/loading-cat.gif");
 		builder.setAuthor("Loading");
 		builder.setColor(Color.WHITE);
-		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).embed(builder.build()).complete();
+		message = message.editMessage("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString()).setEmbeds(builder.build()).complete();
 
 	}
 
@@ -112,10 +112,13 @@ public class PanelManager {
 	}
 
 	public void update() {
-		message = message.editMessage(getNextMessage()).complete();
+
+		if (message == null)
+			return;
+		message = message.editMessage(getNextMessage().build()).complete();
 	}
 
-	public Message getNextMessage() {
+	public MessageBuilder getNextMessage() {
 		if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
 			guildMusicManager.getPanelManager().setPlaying(guildMusicManager.getPlayer().getPlayingTrack());
 		}else
@@ -142,7 +145,7 @@ public class PanelManager {
 				.setContent("**Send a Link or a Search Query to play a Song!**\n\n__Queue__:\n" + guildMusicManager.getTrackScheduler().getQueueString())
 				.setEmbeds(this.builder.build());
 
-		return builder.build();
+		return builder;
 	}
 
 	public void sendMessage(String text) {

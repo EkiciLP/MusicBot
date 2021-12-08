@@ -95,7 +95,7 @@ public class ReactionManager extends ListenerAdapter {
 						}
 						break;
 				}
-				event.getHook().editOriginal(musicManager.getPanelManager().getNextMessage()).queue();
+				event.getHook().editOriginal(musicManager.getPanelManager().getNextMessage().build()).queue();
 
 			}else
 				event.reply("You cant do that!").setEphemeral(true).queue();

@@ -27,6 +27,8 @@ public class SearchCommand implements GuildCommand {
 			TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild()).connect(Utils.findSuitableVoiceChannel(member));
 
 			channel.sendMessage("🔍 Searching for: ``" + URL.toString() + "``").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+
+
 			TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild()).search(URL.toString(), channel);
 
 		}

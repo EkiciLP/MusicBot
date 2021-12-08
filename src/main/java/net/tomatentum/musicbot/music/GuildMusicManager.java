@@ -51,7 +51,6 @@ public class GuildMusicManager extends ListenerAdapter {
 
 	public void quit() {
 		currentTimer.cancel();
-		System.out.println("Quit!");
 		guild.getAudioManager().closeAudioConnection();
 		trackScheduler.clear();
 		trackScheduler.setRepeating(false);
@@ -148,29 +147,37 @@ public class GuildMusicManager extends ListenerAdapter {
 	}
 
 	public void search(@NotNull String query, TextChannel channel) {
+
+
 		String trackURL;
 		if (query.startsWith("<") && query.endsWith(">")) {
 			trackURL = query.substring(1, query.length()-1);
 		}else
 			trackURL = query;
 
+
 		audioPlayerManager.loadItem("ytsearch:" + trackURL, new AudioLoadResultHandler() {
 			@Override
 			public void trackLoaded(AudioTrack audioTrack) {
+				System.out.println("Search Track loaded");
 			}
 
 			@Override
 			public void playlistLoaded(AudioPlaylist audioPlaylist) {
+
 				new SearchOperation(audioPlaylist, channel, TomatenMusic.getInstance().getAudioManager().getMusicManager(guild));
 
 			}
 
 			@Override
 			public void noMatches() {
+				System.out.println("Search Track No matches");
+
 			}
 
 			@Override
 			public void loadFailed(FriendlyException e) {
+				System.out.println("Search: " + e.getMessage());
 			}
 		});
 	}
@@ -208,7 +215,7 @@ public class GuildMusicManager extends ListenerAdapter {
 
 	public VoiceChannel getCurrentChannel() {
 		if (guild.getAudioManager().isConnected())
-			return guild.getAudioManager().getConnectedChannel();
+			return (VoiceChannel) guild.getAudioManager().getConnectedChannel();
 		return null;
 	}
 

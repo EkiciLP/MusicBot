@@ -14,7 +14,7 @@ import java.util.List;
 public class Utils {
 
 	public static VoiceChannel findSuitableVoiceChannel(Member member) {
-		VoiceChannel voiceChannel = member.getVoiceState().getChannel();
+		VoiceChannel voiceChannel = (VoiceChannel) member.getVoiceState().getChannel();
 		if (voiceChannel == null) {
 			throw new PanelException("You are not in a Voice Channel", member.getGuild());
 		}

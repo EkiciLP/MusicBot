@@ -57,7 +57,7 @@ public class TomatenMusic {
 		builder.addEventListeners(cmdmanager);
 		builder.addEventListeners(new ReactionManager());
 		builder.addEventListeners(new MessageReceivePlayHandler());
-		builder.setActivity(Activity.watching("New Patch getting released!"));
+		builder.setActivity(Activity.watching("New Hotfix released"));
 		this.bot = builder.build();
 
 		this.audioManager = new AudioManager(this);

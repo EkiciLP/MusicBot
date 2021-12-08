@@ -31,8 +31,7 @@ public class BroadcastListener extends ListenerAdapter {
                 event.getMessage().reply("Broadcasted").queue();
 
 
-            }else
-                event.getMessage().reply("Wrong Command").queue();
+            }
 
         }
 

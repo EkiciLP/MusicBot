@@ -6,7 +6,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
@@ -15,6 +14,7 @@ import net.tomatentum.musicbot.music.GuildMusicManager;
 
 import java.time.OffsetDateTime;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class SelectionPanel extends ListenerAdapter {
 	private final GuildMusicManager musicManager;
@@ -27,21 +27,32 @@ public class SelectionPanel extends ListenerAdapter {
 
 	public SelectionPanel(TextChannel channel, String Title, Selectable handle) {
 		currentPage = 1;
-
 		TomatenMusic.getInstance().getBot().addEventListener(this);
 		this.channel = channel;
 		this.musicManager = TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild());
 		this.handle = handle;
 		this.builder = new EmbedBuilder();
 
+
 		this.builder.setTitle(Title);
 		this.builder.setTimestamp(OffsetDateTime.now());
 		builder.setColor(0x2C2F33);
 
-		this.message = channel.sendMessage(getPage(currentPage)).complete();
 
 
-		this.message.delete().queueAfter(1, TimeUnit.MINUTES);
+		Message page = getPage(currentPage);
+		System.out.println(page);
+		this.message = channel.sendMessage(page).complete();
+
+		SelectionPanel thiz = this;
+
+		this.message.delete().queueAfter(1, TimeUnit.MINUTES, new Consumer<Void>() {
+			@Override
+			public void accept(Void unused) {
+				TomatenMusic.getInstance().getBot().removeEventListener(thiz);
+				System.out.println("Removed event Listener from SelectionPanel");
+			}
+		});
 
 
 
@@ -56,148 +67,159 @@ public class SelectionPanel extends ListenerAdapter {
 		currentPage = page;
 		builder.setDescription(handle.getPage(currentPage));
 		builder.setFooter("- Select an entry by reacting with the correct number | Page: " + currentPage + " / " + handle.getTotalPages());
-
-		ActionRow[] actionRows;
+		ActionRow actionRowSelect;
+		ActionRow actionRowSelect2;
+		ActionRow actionRowPage;
 		switch (handle.getPageSize(currentPage)) {
 			case 1:
-				actionRows = new ActionRow[]{
-						ActionRow.of(
-								Button.primary("1", "1️⃣")
-						),
-						ActionRow.of(
-								Button.secondary("next", "⏩").withDisabled(handle.getTotalPages() <= currentPage),
-								Button.secondary("previous", "⏪").withDisabled(currentPage - 1 <= 0)
-						)
-				};
+				actionRowSelect = ActionRow.of(
+						Button.primary("1", "1️⃣")
+				);
+				actionRowSelect2 = null;
+
+				actionRowPage = ActionRow.of(
+						Button.secondary("next", "⏩").withDisabled(handle.getTotalPages() <= currentPage),
+						Button.secondary("previous", "⏪").withDisabled(currentPage - 1 <= 0)
+				);
 				break;
 			case 2:
-				actionRows = new ActionRow[]{
-						ActionRow.of(
+						actionRowSelect = ActionRow.of(
 								Button.primary("1", "1️⃣"),
 								Button.primary("2", "2️⃣")
-						),
-						ActionRow.of(
+						);
+				actionRowSelect2 = null;
+
+				actionRowPage = ActionRow.of(
 								Button.secondary("next", "⏩").withDisabled(handle.getTotalPages() <= currentPage),
 								Button.secondary("previous", "⏪").withDisabled(currentPage - 1 <= 0)
-						)
-				};
+						);
+
 				break;
 			case 3:
-				actionRows = new ActionRow[]{
-						ActionRow.of(
+						actionRowSelect = ActionRow.of(
 								Button.primary("1", "1️⃣"),
 								Button.primary("2", "2️⃣"),
 								Button.primary("3", "3️⃣")
-						),
-						ActionRow.of(
+						);
+				actionRowSelect2 = null;
+
+				actionRowPage = ActionRow.of(
 								Button.secondary("next", "⏩").withDisabled(handle.getTotalPages() <= currentPage),
 								Button.secondary("previous", "⏪").withDisabled(currentPage - 1 <= 0)
-						)
-				};
+						);
 				break;
 			case 4:
-				actionRows = new ActionRow[]{
-						ActionRow.of(
+						actionRowSelect = ActionRow.of(
 								Button.primary("1", "1️⃣"),
 								Button.primary("2", "2️⃣"),
 								Button.primary("3", "3️⃣"),
 								Button.primary("4", "4️⃣")
-						),
-						ActionRow.of(
+						);
+				actionRowSelect2 = null;
+
+				actionRowPage = ActionRow.of(
 								Button.secondary("next", "⏩").withDisabled(handle.getTotalPages() <= currentPage),
 								Button.secondary("previous", "⏪").withDisabled(currentPage - 1 <= 0)
-						)
-				};
+						);
 				break;
 			case 5:
-				actionRows = new ActionRow[]{
-						ActionRow.of(
+						actionRowSelect = ActionRow.of(
 								Button.primary("1", "1️⃣"),
 								Button.primary("2", "2️⃣"),
 								Button.primary("3", "3️⃣"),
 								Button.primary("4", "4️⃣"),
 								Button.primary("5", "5️⃣")
-						),
-						ActionRow.of(
+						);
+						actionRowSelect2 = null;
+						actionRowPage = ActionRow.of(
 								Button.secondary("next", "⏩").withDisabled(handle.getTotalPages() <= currentPage),
 								Button.secondary("previous", "⏪").withDisabled(currentPage - 1 <= 0)
-						)
-				};
+						);
 				break;
 			case 6:
-				actionRows = new ActionRow[]{
-						ActionRow.of(
+						actionRowSelect = ActionRow.of(
 								Button.primary("1", "1️⃣"),
 								Button.primary("2", "2️⃣"),
 								Button.primary("3", "3️⃣"),
 								Button.primary("4", "4️⃣"),
-								Button.primary("5", "5️⃣"),
-								Button.primary("6", "6️⃣")
-						),
-						ActionRow.of(
+								Button.primary("5", "5️⃣")
+						);
+				actionRowSelect2 = ActionRow.of(
+						Button.primary("6", "6️⃣")
+				);
+						actionRowPage = ActionRow.of(
 								Button.secondary("next", "⏩").withDisabled(handle.getTotalPages() <= currentPage),
 								Button.secondary("previous", "⏪").withDisabled(currentPage - 1 <= 0)
-						)
-				};
+						);
 				break;
 			case 7:
-				actionRows = new ActionRow[]{
-						ActionRow.of(
+						actionRowSelect = ActionRow.of(
 								Button.primary("1", "1️⃣"),
 								Button.primary("2", "2️⃣"),
 								Button.primary("3", "3️⃣"),
 								Button.primary("4", "4️⃣"),
-								Button.primary("5", "5️⃣"),
-								Button.primary("6", "6️⃣"),
-								Button.primary("7", "7️⃣")
-						),
-						ActionRow.of(
+								Button.primary("5", "5️⃣")
+						);
+				actionRowSelect2 = ActionRow.of(
+						Button.primary("6", "6️⃣"),
+						Button.primary("7", "7️⃣")
+				);
+						actionRowPage = ActionRow.of(
 								Button.secondary("next", "⏩").withDisabled(handle.getTotalPages() <= currentPage),
 								Button.secondary("previous", "⏪").withDisabled(currentPage - 1 <= 0)
-						)
-				};
+						);
 				break;
 			case 8:
-				actionRows = new ActionRow[]{
-						ActionRow.of(
+						actionRowSelect = ActionRow.of(
 								Button.primary("1", "1️⃣"),
 								Button.primary("2", "2️⃣"),
 								Button.primary("3", "3️⃣"),
 								Button.primary("4", "4️⃣"),
-								Button.primary("5", "5️⃣"),
+								Button.primary("5", "5️⃣")
+						);
+
+						actionRowSelect2 = ActionRow.of(
 								Button.primary("6", "6️⃣"),
 								Button.primary("7", "7️⃣"),
 								Button.primary("8", "8️⃣")
-						),
-						ActionRow.of(
+						);
+
+						actionRowPage = ActionRow.of(
 								Button.secondary("next", "⏩").withDisabled(handle.getTotalPages() <= currentPage),
 								Button.secondary("previous", "⏪").withDisabled(currentPage - 1 <= 0)
-						)
-				};
+						);
 				break;
 			default:
 
-				actionRows = new ActionRow[]{
-						ActionRow.of(
-								Button.primary("1", "1️⃣"),
-								Button.primary("2", "2️⃣"),
-								Button.primary("3", "3️⃣"),
-								Button.primary("4", "4️⃣"),
-								Button.primary("5", "5️⃣"),
-								Button.primary("6", "6️⃣"),
-								Button.primary("7", "7️⃣"),
-								Button.primary("8", "8️⃣"),
-								Button.primary("9", "9️⃣")
-						),
-						ActionRow.of(
-								Button.secondary("next", "⏩").withDisabled(handle.getTotalPages() <= currentPage),
-								Button.secondary("previous", "⏪").withDisabled(currentPage - 1 != 0)
-						)
-				};
+				actionRowSelect = ActionRow.of(
+						Button.primary("1", "1️⃣"),
+						Button.primary("2", "2️⃣"),
+						Button.primary("3", "3️⃣"),
+						Button.primary("4", "4️⃣"),
+						Button.primary("5", "5️⃣")
+				);
+
+				actionRowSelect2 = ActionRow.of(
+						Button.primary("6", "6️⃣"),
+						Button.primary("7", "7️⃣"),
+						Button.primary("8", "8️⃣"),
+						Button.primary("9", "9️⃣")
+				);
+
+				actionRowPage = ActionRow.of(
+						Button.secondary("next", "⏩").withDisabled(handle.getTotalPages() <= currentPage),
+						Button.secondary("previous", "⏪").withDisabled(currentPage - 1 <= 0)
+				);
+
+
 				break;
 		}
 
-		return new MessageBuilder().setEmbeds(builder.build()).setActionRows(actionRows).build();
+		if (actionRowSelect2 != null)
+			return new MessageBuilder().setEmbeds(builder.build()).setActionRows(actionRowSelect, actionRowSelect2, actionRowPage).build();
+		else
+			return new MessageBuilder().setEmbeds(builder.build()).setActionRows(actionRowSelect, actionRowPage).build();
+
 	}
 
 	@Override
@@ -214,7 +236,7 @@ public class SelectionPanel extends ListenerAdapter {
 						event.editMessage(getPage(currentPage+1)).queue(interactionHook -> interactionHook.getInteraction().getMessageChannel().retrieveMessageById(message.getIdLong()).queue(message -> this.message = message));
 						break;
 					default:
-						event.reply("").queue();
+						event.editMessage(event.getMessage()).queue();
 						handle.handleReaction(Integer.parseInt(event.getComponentId()), currentPage, event.getMember(), event);
 						break;
 

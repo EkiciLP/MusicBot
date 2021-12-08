@@ -93,7 +93,7 @@ public class FavoriteSongManager implements Selectable {
 	@Override
 	public void handleReaction(int item, int currentpage, Member member, ButtonClickEvent action) {
 		List<Database.DbTrack> trackInfos = pageManager.getPage(currentpage);
-		if (!member.getVoiceState().inVoiceChannel()) {
+		if (!member.getVoiceState().inAudioChannel()) {
 			return;
 		}
 
