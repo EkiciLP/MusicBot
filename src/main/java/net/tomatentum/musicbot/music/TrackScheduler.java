@@ -89,8 +89,10 @@ public class TrackScheduler extends AudioEventAdapter {
 		int count = 1;
 		for (AudioTrack track : queue) {
 
-			if (count > 20)
-				builder.append(String.format("***And %s more...***", queue.size()-20));
+			if (count > 15) {
+				builder.append(String.format("***And %s more...***", queue.size() - 15));
+				break;
+			}
 
 			builder.append(count).append(": ").append(track.getInfo().title.equals("Unknown title") ? track.getIdentifier() : track.getInfo().title).append(" [").append(TomatenMusic.getTimestamp(track.getDuration())).append("]\n");
 			count++;

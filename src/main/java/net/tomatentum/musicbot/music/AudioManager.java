@@ -17,15 +17,14 @@ import net.tomatentum.musicbot.favourites.FavoriteSongManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.crypto.Data;
-import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public class AudioManager extends ListenerAdapter {
 	private TomatenMusic main;
 	private HashMap<Long, GuildMusicManager> musicManagerHashMap;
 	private HashMap<FavoriteSongManager.User, FavoriteSongManager> favoriteSongManagerHashMap;
 	private Database database;
+	private UpdateTimer updateTimer;
 
 	private AudioPlayerManager audioPlayerManager;
 
@@ -39,8 +38,8 @@ public class AudioManager extends ListenerAdapter {
 		AudioSourceManagers.registerRemoteSources(audioPlayerManager);
 		audioPlayerManager.registerSourceManager(new YoutubeAudioSourceManager());
 		audioPlayerManager.registerSourceManager(new HttpAudioSourceManager());
-		audioPlayerManager.registerSourceManager(new TwitchStreamAudioSourceManager());
 		TomatenMusic.getInstance().getBot().addEventListener(this);
+		updateTimer = new UpdateTimer();
 
 
 		for (Guild guild : TomatenMusic.getInstance().getBot().getGuilds()) {
@@ -73,5 +72,9 @@ public class AudioManager extends ListenerAdapter {
 
 	public AudioPlayerManager getAudioPlayerManager() {
 		return audioPlayerManager;
+	}
+
+	public Collection<GuildMusicManager> getMusicManagers() {
+		return musicManagerHashMap.values();
 	}
 }

@@ -16,8 +16,6 @@ import net.tomatentum.musicbot.music.messagemanagers.PanelManager;
 import net.tomatentum.musicbot.music.messagemanagers.SearchOperation;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class GuildMusicManager extends ListenerAdapter {
@@ -27,7 +25,6 @@ public class GuildMusicManager extends ListenerAdapter {
 	private AudioPlayerSendHandler audioPlayerSendHandler;
 	private AudioPlayerManager audioPlayerManager;
 	private PanelManager panelManager;
-	private Timer currentTimer;
 
 
 	public GuildMusicManager(AudioPlayerManager playerManager, Guild guild) {
@@ -45,12 +42,9 @@ public class GuildMusicManager extends ListenerAdapter {
 	public void connect(VoiceChannel channel) {
 		guild.getAudioManager().openAudioConnection(channel);
 		guild.getAudioManager().setSendingHandler(audioPlayerSendHandler);
-
-
 	}
 
 	public void quit() {
-		currentTimer.cancel();
 		guild.getAudioManager().closeAudioConnection();
 		trackScheduler.clear();
 		trackScheduler.setRepeating(false);
@@ -196,15 +190,6 @@ public class GuildMusicManager extends ListenerAdapter {
 
 		if (event.getMember().getUser().getIdLong() != event.getJDA().getSelfUser().getIdLong())
 			return;
-
-		currentTimer = new Timer();
-
-		currentTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				quitIfEmpty();
-			}
-		}, 10000, 10000);
 
 		if (event.getChannelJoined() instanceof StageChannel) {
 			StageChannel stageChannel = (StageChannel) event.getChannelJoined();

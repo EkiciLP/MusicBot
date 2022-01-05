@@ -6,7 +6,9 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import net.tomatentum.musicbot.TomatenMusic;
@@ -33,12 +35,9 @@ public class SelectionPanel extends ListenerAdapter {
 		this.handle = handle;
 		this.builder = new EmbedBuilder();
 
-
 		this.builder.setTitle(Title);
 		this.builder.setTimestamp(OffsetDateTime.now());
 		builder.setColor(0x2C2F33);
-
-
 
 		Message page = getPage(currentPage);
 		System.out.println(page);
@@ -46,16 +45,33 @@ public class SelectionPanel extends ListenerAdapter {
 
 		SelectionPanel thiz = this;
 
-		this.message.delete().queueAfter(1, TimeUnit.MINUTES, new Consumer<Void>() {
-			@Override
-			public void accept(Void unused) {
-				TomatenMusic.getInstance().getBot().removeEventListener(thiz);
-				System.out.println("Removed event Listener from SelectionPanel");
-			}
+		this.message.delete().queueAfter(1, TimeUnit.MINUTES, unused -> {
+			TomatenMusic.getInstance().getBot().removeEventListener(thiz);
+			System.out.println("Removed event Listener from SelectionPanel");
 		});
+	}
 
+	public SelectionPanel(Message replyTo, String Title, Selectable handle) {
+		currentPage = 1;
+		TomatenMusic.getInstance().getBot().addEventListener(this);
+		this.channel = replyTo.getTextChannel();
+		this.musicManager = TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild());
+		this.handle = handle;
+		this.builder = new EmbedBuilder();
 
+		this.builder.setTitle(Title);
+		this.builder.setTimestamp(OffsetDateTime.now());
+		builder.setColor(0x2C2F33);
 
+		Message page = getPage(currentPage);
+		this.message = replyTo.reply(page).complete();
+
+		SelectionPanel thiz = this;
+
+		this.message.delete().queueAfter(1, TimeUnit.MINUTES, unused -> {
+			TomatenMusic.getInstance().getBot().removeEventListener(thiz);
+			System.out.println("Removed event Listener from SelectionPanel");
+		});
 	}
 
 	public Message getPage(int page) {
@@ -227,6 +243,7 @@ public class SelectionPanel extends ListenerAdapter {
 		if (event.getUser().isBot()) {
 			return;
 		}
+
 			if (event.getMessageIdLong() == message.getIdLong()) {
 				switch (event.getComponentId()) {
 					case "previous":

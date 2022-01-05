@@ -61,7 +61,12 @@ public class SpotifyWrapper {
 		}
 		System.out.println("Searching for: " + track.getName() + " " + track.getArtists()[0].getName());
 
-		TomatenMusic.getInstance().getAudioManager().getAudioPlayerManager().loadItem("ytsearch:" + track.getName() + " " + track.getArtists()[0].getName(), new AudioLoadResultHandler() {
+		StringBuilder artists = new StringBuilder();
+
+		for (ArtistSimplified artist : track.getArtists())
+			artists.append(artist.getName()).append(" ");
+
+		TomatenMusic.getInstance().getAudioManager().getAudioPlayerManager().loadItem("ytsearch:" + track.getName() + " " + artists.toString(), new AudioLoadResultHandler() {
 			@Override
 			public void trackLoaded(AudioTrack track) {
 				musicManager.play(track);
@@ -106,7 +111,12 @@ public class SpotifyWrapper {
 			Track track = (Track) ptrack.getTrack();
 			System.out.println("Searching for: " + track.getName() + " " + track.getArtists()[0].getName());
 
-			TomatenMusic.getInstance().getAudioManager().getAudioPlayerManager().loadItem("ytsearch:" + track.getName() + " " + track.getArtists()[0].getName(), new AudioLoadResultHandler() {
+			StringBuilder artists = new StringBuilder();
+
+			for (ArtistSimplified artist : track.getArtists())
+				artists.append(artist.getName()).append(" ");
+
+			TomatenMusic.getInstance().getAudioManager().getAudioPlayerManager().loadItem("ytsearch:" + track.getName() + " " + artists.toString(), new AudioLoadResultHandler() {
 				@Override
 				public void trackLoaded(AudioTrack track) {
 					tracks.add(track);
@@ -158,7 +168,12 @@ public class SpotifyWrapper {
 
 			System.out.println("Searching for: " + track.getName() + " " + track.getArtists()[0].getName());
 
-			TomatenMusic.getInstance().getAudioManager().getAudioPlayerManager().loadItem("ytsearch:" + track.getName() + " " + track.getArtists()[0].getName(), new AudioLoadResultHandler() {
+			StringBuilder artists = new StringBuilder();
+
+			for (ArtistSimplified artist : track.getArtists())
+				artists.append(artist.getName()).append(" ");
+
+			TomatenMusic.getInstance().getAudioManager().getAudioPlayerManager().loadItem("ytsearch:" + track.getName() + " " + artists.toString(), new AudioLoadResultHandler() {
 				@Override
 				public void trackLoaded(AudioTrack track) {
 					tracks.add(track);

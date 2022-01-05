@@ -3,34 +3,36 @@ package net.tomatentum.musicbot.command;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.utils.GuildCommand;
 import net.tomatentum.musicbot.utils.Utils;
 
 import java.util.concurrent.TimeUnit;
 
-public class SearchCommand implements GuildCommand {
+public class SearchCommand extends GuildCommand {
+	protected SearchCommand() {
+		super("search", "Searches youtube for the provided Query",
+				new OptionData(OptionType.STRING, "query", "The Query to search for").setRequired(true)
+		);
+	}
+
 	@Override
-	public void execute(Member member, TextChannel channel, Message message, String[] args) {
-		message.delete().queue();
-		Utils.checkSameChannel(member);
+	public void execute(SlashCommandEvent command) {
+		Utils.checkSameChannel(command.getMember());
 
 
-		if (args.length > 1) {
-			StringBuilder URL = new StringBuilder();
+			String URL = command.getOption("query").getAsString();
 
-			for (int i = 1; i < args.length; i++) {
-				URL.append(args[i]).append(" ");
-			}
-			Utils.checkSameChannel(member);
+			Utils.checkSameChannel(command.getMember());
 
-			TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild()).connect(Utils.findSuitableVoiceChannel(member));
+			TomatenMusic.getInstance().getAudioManager().getMusicManager(command.getGuild()).connect(Utils.findSuitableVoiceChannel(command.getMember()));
 
-			channel.sendMessage("🔍 Searching for: ``" + URL.toString() + "``").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+			command.reply("🔍 Searching for: ``" + URL.toString() + "``").queue();
 
 
-			TomatenMusic.getInstance().getAudioManager().getMusicManager(channel.getGuild()).search(URL.toString(), channel);
-
-		}
+			TomatenMusic.getInstance().getAudioManager().getMusicManager(command.getGuild()).search(URL, command.getTextChannel());
 	}
 }

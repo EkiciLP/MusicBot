@@ -2,8 +2,10 @@ package net.tomatentum.musicbot.favourites;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.tomatentum.musicbot.TomatenMusic;
 import net.tomatentum.musicbot.music.GuildMusicManager;
 import net.tomatentum.musicbot.utils.PageManager;
@@ -86,8 +88,12 @@ public class FavoriteSongManager implements Selectable {
 			return builder.toString();
 	}
 
+
 	public void showPanel(TextChannel channel) {
 		new SelectionPanel(channel, "Favorite Songs of: " + user.getMember().getEffectiveName(), this);
+	}
+	public void showPanel(Message replyTo) {
+		new SelectionPanel(replyTo, "Favorite Songs of: " + user.getMember().getEffectiveName(), this);
 	}
 
 	@Override

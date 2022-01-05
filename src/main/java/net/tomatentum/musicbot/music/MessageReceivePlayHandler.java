@@ -1,7 +1,5 @@
 package net.tomatentum.musicbot.music;
 
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.StageChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -14,12 +12,6 @@ import java.util.concurrent.TimeUnit;
 public class MessageReceivePlayHandler extends ListenerAdapter {
 	@Override
 	public void onMessageReceived(MessageReceivedEvent event) {
-
-		if (event.getChannelType().equals(ChannelType.PRIVATE)) {
-			System.out.println(event.getPrivateChannel().getUser().getAsTag() + " >> " + event.getMessage().getContentDisplay());
-			return;
-		}
-
 
 		GuildMusicManager musicManager = TomatenMusic.getInstance().getAudioManager().getMusicManager(event.getGuild());
 
@@ -37,33 +29,30 @@ public class MessageReceivePlayHandler extends ListenerAdapter {
 		VoiceChannel vc = Utils.findSuitableVoiceChannel(event.getMember());
 
 
-				musicManager.getPanelManager().setLoading();
+		musicManager.getPanelManager().setLoading();
 
-				musicManager.connect(vc);
+		musicManager.connect(vc);
 
+		if (event.getMessage().getContentRaw().startsWith("https://open.spotify.com/track")) {
+			SpotifyWrapper.getInstance().playTrack(event.getMessage().getContentDisplay(), musicManager);
 
-				if (event.getMessage().getContentRaw().startsWith("https://open.spotify.com/track")) {
-					SpotifyWrapper.getInstance().playTrack(event.getMessage().getContentDisplay(), musicManager);
+			return;
+		}else if (event.getMessage().getContentRaw().startsWith("https://open.spotify.com/playlist")) {
+			SpotifyWrapper.getInstance().playPlaylist(event.getMessage().getContentDisplay(), musicManager);
 
-					return;
-				}else if (event.getMessage().getContentRaw().startsWith("https://open.spotify.com/playlist")) {
-					SpotifyWrapper.getInstance().playPlaylist(event.getMessage().getContentDisplay(), musicManager);
+			return;
+		}else if (event.getMessage().getContentRaw().startsWith("https://open.spotify.com/album")) {
+			SpotifyWrapper.getInstance().playAlbum(event.getMessage().getContentDisplay(), musicManager);
 
-					return;
-				}else if (event.getMessage().getContentRaw().startsWith("https://open.spotify.com/album")) {
-					SpotifyWrapper.getInstance().playAlbum(event.getMessage().getContentDisplay(), musicManager);
+			return;
+		}
 
-					return;
-				}
+		if (event.getMessage().getAttachments().size() > 0) {
+			musicManager.searchPlay(event.getMessage().getAttachments().get(0).getUrl());
+			return;
+		}
 
-				if (event.getMessage().getAttachments().size() > 0) {
-					musicManager.searchPlay(event.getMessage().getAttachments().get(0).getUrl());
-					return;
-				}
-
-					musicManager.searchPlay(event.getMessage().getContentDisplay());
-					return;
-
+		musicManager.searchPlay(event.getMessage().getContentDisplay());
 
 	}
 }

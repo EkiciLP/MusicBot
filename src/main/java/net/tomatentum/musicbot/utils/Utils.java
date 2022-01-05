@@ -23,12 +23,14 @@ public class Utils {
 
 
 
-	public static void checkSameChannel(Member member) {
-		if (member.getGuild().getAudioManager().isConnected() &&
-				!member.getVoiceState().getChannel().equals(member.getGuild().getAudioManager().getConnectedChannel())) {
-
-			throw new PanelException("Bot already playing", member.getGuild());
+	public static boolean checkSameChannel(Member member) {
+		if (!member.getGuild().getAudioManager().isConnected()) {
+			return false;
 		}
+		if (!member.getVoiceState().getChannel().equals(member.getGuild().getAudioManager().getConnectedChannel())) {
+			return false;
+		}
+		return true;
 	}
 
 	public static void checkPanelChannel(TextChannel channel) {

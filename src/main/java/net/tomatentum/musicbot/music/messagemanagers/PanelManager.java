@@ -36,11 +36,6 @@ public class PanelManager {
 		}catch (NullPointerException | ErrorResponseException e) {
 			System.out.println(("No panel found for " + musicManager.getGuild().getName()));
 		}
-
-
-		if (message != null) {
-			startUpdateLoop(6000);
-		}
 	}
 
 
@@ -52,19 +47,9 @@ public class PanelManager {
 		setIdle();
 		MessageAction action = channel.sendMessageEmbeds(builder.build());
 
+		message = action.setActionRows(getActionRows()).complete();
 
-		try {
-			message = action.setActionRows(getActionRows()).complete();
-
-			startUpdateLoop(6000);
-
-		}catch (Exception e) {
-			System.out.println("error");
-		}
 		Guild guild = this.guildMusicManager.getGuild();
-		System.out.println(guild);
-		System.out.println(channel);
-		System.out.println(message);
 
 		TomatenMusic.getInstance().getConfiguration().set(String.format("panels.%s.channelid", guild.getIdLong()), channel.getIdLong());
 		TomatenMusic.getInstance().getConfiguration().set(String.format("panels.%s.messageid", guild.getIdLong()), message.getIdLong());
@@ -165,7 +150,7 @@ public class PanelManager {
 						Button.secondary("clear", "🚫")
 				),
 				ActionRow.of(
-						!guildMusicManager.getTrackScheduler().isRepeating() ? Button.danger("loop", "🔄") : Button.success("loop", "🔄"),
+						!guildMusicManager.getTrackScheduler().isRepeating() ? Button.danger("loop", "🔂") : Button.success("loop", "🔂"),
 						Button.secondary("shuffle", "🔀"),
 						Button.secondary("rewind", "↩"),
 						Button.secondary("forward", "↪")
@@ -177,28 +162,6 @@ public class PanelManager {
 		};
 	}
 
-
-	public void startUpdateLoop(long delay) {
-		new Timer().schedule(new TimerTask() {
-			@Override
-			public void run() {
-					if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
-						if (message != null) {
-							if (guildMusicManager.getPlayer().isPaused()) {
-								setPaused();
-								update();
-							} else if (guildMusicManager.getPlayer().getPlayingTrack() != null) {
-								setPlaying(guildMusicManager.getPlayer().getPlayingTrack());
-								update();
-							} else {
-								setIdle();
-								update();
-							}
-						}
-					}
-			}
-		}, delay , delay);
-	}
 
 
 	public TextChannel getChannel() {

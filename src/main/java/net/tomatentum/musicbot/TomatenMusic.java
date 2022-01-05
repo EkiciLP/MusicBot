@@ -35,10 +35,6 @@ public class TomatenMusic {
 	public TomatenMusic() throws LoginException {
 
 		cmdmanager = new CommandManager();
-		cmdmanager.registerCommand("panel", new PanelCommand());
-		cmdmanager.registerCommand("search", new SearchCommand());
-		cmdmanager.registerCommand("favorites", new FavoriteCommand());
-		cmdmanager.registerCommand("fav", new FavoriteCommand());
 
 
 
@@ -57,7 +53,7 @@ public class TomatenMusic {
 		builder.addEventListeners(cmdmanager);
 		builder.addEventListeners(new ReactionManager());
 		builder.addEventListeners(new MessageReceivePlayHandler());
-		builder.setActivity(Activity.watching("New Hotfix released"));
+		builder.setActivity(Activity.watching("Version 1.2.2 Released!"));
 		this.bot = builder.build();
 
 		this.audioManager = new AudioManager(this);
@@ -131,5 +127,9 @@ public class TomatenMusic {
 
 	public AudioManager getAudioManager() {
 		return audioManager;
+	}
+
+	public CommandManager getCmdmanager() {
+		return cmdmanager;
 	}
 }

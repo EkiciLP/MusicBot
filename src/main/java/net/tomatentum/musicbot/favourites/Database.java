@@ -47,7 +47,7 @@ public class Database {
         System.out.println("Opened favourites database successfully");
 
         executeUpdate("CREATE TABLE IF NOT EXISTS favourites" +
-                "(userid BIGINT PRIMARY KEY, trackURL varchar , title varchar, length BIGINT)");
+                "(userid BIGINT, trackURL varchar , title varchar, length BIGINT)");
 
 
 
